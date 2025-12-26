@@ -1,0 +1,65 @@
+---
+alwaysApply: true
+---
+
+# TrackLight Project Structure
+
+This is a Next.js 16 project with TypeScript, Tailwind CSS v4, and shadcn/ui components.
+
+## Directory Structure
+
+```
+/Users/isaac/Documents/Projects/12-TrackLight/
+├── app/                    # Next.js App Router
+│   ├── layout.tsx         # Root layout
+│   ├── page.tsx           # Home page
+│   ├── globals.css        # Global styles with shadcn/ui variables
+│   └── favicon.ico
+├── components/            # React components
+│   └── ui/               # shadcn/ui components (auto-generated)
+│       ├── button.tsx
+│       ├── card.tsx
+│       └── input.tsx
+├── lib/                   # Utility functions
+│   └── utils.ts          # cn() utility for class merging
+├── hooks/                # Custom React hooks (create as needed)
+├── public/               # Static assets
+└── components.json       # shadcn/ui configuration
+```
+
+## Tech Stack
+
+- **Framework**: Next.js 16.1.1 with App Router
+- **Language**: TypeScript 5
+- **Styling**: Tailwind CSS v4
+- **UI Components**: shadcn/ui (New York style)
+- **Icons**: lucide-react
+- **Package Manager**: npm
+
+## Key Configuration Files
+
+- [tsconfig.json](mdc:tsconfig.json) - TypeScript configuration with path aliases
+- [components.json](mdc:components.json) - shadcn/ui configuration
+- [app/globals.css](mdc:app/globals.css) - Global styles and CSS variables
+- [package.json](mdc:package.json) - Project dependencies
+
+## Path Aliases
+
+The project uses `@/` as the base alias:
+- `@/components` → components directory
+- `@/lib` → lib directory
+- `@/hooks` → hooks directory
+- `@/app` → app directory
+
+## Adding New Components
+
+1. **shadcn/ui components**: Use `npx shadcn@latest add <component>`
+2. **Custom components**: Create in `components/` directory
+3. **Page components**: Create in `app/` directory following Next.js App Router conventions
+
+## Development
+
+- Run dev server: `npm run dev`
+- Build for production: `npm run build`
+- Start production server: `npm start`
+- Lint code: `npm run lint`

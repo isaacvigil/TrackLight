@@ -1,0 +1,122 @@
+---
+alwaysApply: true
+---
+# shadcn/ui Setup and Usage
+
+**IMPORTANT**: This project uses shadcn/ui for **ALL** UI elements. Do not use custom UI components or other UI libraries unless absolutely necessary.
+
+## Initialization
+
+If shadcn/ui is not initialized in the project, run:
+
+```bash
+npx shadcn@latest init
+```
+
+This project uses shadcn/ui for UI components with the following configuration:
+
+## Core Configuration
+
+- **Style**: New York
+- **Base Color**: Neutral
+- **CSS Variables**: Enabled
+- **RSC**: Enabled (React Server Components)
+- **TypeScript**: Enabled
+
+## Key Files
+
+- Configuration: [components.json](mdc:components.json)
+- Utilities: [lib/utils.ts](mdc:lib/utils.ts)
+- Global Styles: [app/globals.css](mdc:app/globals.css)
+
+## Path Aliases
+
+The following path aliases are configured in [tsconfig.json](mdc:tsconfig.json):
+
+- `@/components` → components directory
+- `@/lib` → lib directory
+- `@/hooks` → hooks directory
+- `@/` → project root
+
+## Installing Components
+
+**If a component is not installed**, use the CLI to add it. For example, to install the button component:
+
+```bash
+npx shadcn@latest add button
+```
+
+General syntax:
+```bash
+npx shadcn@latest add <component-name>
+```
+
+Components will be installed to `components/ui/` and can be imported as:
+
+```tsx
+import { Button } from "@/components/ui/button"
+```
+
+**Important**: Always check if a component exists in `components/ui/` before using it. If it doesn't exist, install it first using the command above.
+
+## CSS Variables
+
+Color theme variables are defined using HSL format in [app/globals.css](mdc:app/globals.css):
+
+- Primary colors: `--primary`, `--primary-foreground`
+- Secondary colors: `--secondary`, `--secondary-foreground`
+- Accent colors: `--accent`, `--accent-foreground`
+- Muted colors: `--muted`, `--muted-foreground`
+- Destructive colors: `--destructive`, `--destructive-foreground`
+- Background/foreground: `--background`, `--foreground`
+- Border/input: `--border`, `--input`, `--ring`
+- Card/popover: `--card`, `--popover` and their foreground variants
+
+Dark mode is handled automatically via `prefers-color-scheme: dark`.
+
+## Utility Function
+
+The `cn()` utility function in [lib/utils.ts](mdc:lib/utils.ts) is used to merge Tailwind classes:
+
+```tsx
+import { cn } from "@/lib/utils"
+
+<div className={cn("base-classes", conditionalClass && "conditional-classes")} />
+```
+
+## Best Practices
+
+1. **Always use the `cn()` utility** for combining class names
+2. **Use semantic color variables** instead of hardcoded colors (e.g., `bg-primary` instead of `bg-black`)
+3. **Leverage the component variants** provided by shadcn/ui components
+4. **Keep components in `components/ui/`** to separate shadcn components from custom ones
+5. **Use Tailwind CSS v4** syntax (this project uses the latest version)
+6. **Import icons from lucide-react**: `import { Icon } from "lucide-react"`
+
+## Component Customization
+
+shadcn/ui components are copied into your codebase, so you can:
+
+- Modify component styles directly in `components/ui/`
+- Add new variants using `class-variance-authority`
+- Extend component props as needed
+
+## Common Components
+
+Popular shadcn/ui components to install:
+
+- `button` - Button component with variants
+- `card` - Card container component
+- `input` - Input field component
+- `label` - Label component
+- `dialog` - Modal dialog component
+- `dropdown-menu` - Dropdown menu component
+- `sheet` - Side sheet/drawer component
+- `toast` - Toast notification component
+- `form` - Form components with react-hook-form integration
+- `table` - Table component with sorting and filtering
+
+Install them as needed using:
+```bash
+npx shadcn@latest add button card input label
+```

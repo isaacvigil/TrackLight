@@ -1,0 +1,87 @@
+---
+globs: *.tsx,*.ts
+description: Component development guidelines for React and TypeScript files
+---
+
+# Component Development Guidelines
+
+## shadcn/ui Component Usage
+
+When using shadcn/ui components in this project:
+
+1. **Check component availability**: If a component is not installed, add it first:
+   ```bash
+   npx shadcn@latest add button
+   ```
+
+2. **Import paths**: Always use the `@/` alias
+   ```tsx
+   import { Button } from "@/components/ui/button"
+   import { cn } from "@/lib/utils"
+   ```
+
+3. **Class merging**: Use the `cn()` utility from [lib/utils.ts](mdc:lib/utils.ts)
+   ```tsx
+   <Button className={cn("w-full", isActive && "bg-accent")}>
+     Click me
+   </Button>
+   ```
+
+4. **Color tokens**: Use semantic color variables
+   ```tsx
+   // Good ✓
+   <div className="bg-primary text-primary-foreground">
+   <div className="text-muted-foreground">
+   
+   // Avoid ✗
+   <div className="bg-black text-white">
+   <div className="text-gray-500">
+   ```
+
+## Component Structure
+
+Organize components following this pattern:
+
+```tsx
+import { cn } from "@/lib/utils"
+import { type ComponentProps } from "react"
+
+interface MyComponentProps extends ComponentProps<"div"> {
+  // Add custom props here
+}
+
+export function MyComponent({ 
+  className,
+  children,
+  ...props 
+}: MyComponentProps) {
+  return (
+    <div className={cn("base-styles", className)} {...props}>
+      {children}
+    </div>
+  )
+}
+```
+
+## Icons
+
+Use lucide-react for icons (already installed):
+
+```tsx
+import { ChevronRight, User, Menu } from "lucide-react"
+
+<Button>
+  <User className="mr-2 size-4" />
+  Profile
+</Button>
+```
+
+## Dark Mode
+
+Dark mode is automatic via `prefers-color-scheme`. Colors defined in [app/globals.css](mdc:app/globals.css) adjust automatically.
+
+## TypeScript
+
+- Always define prop interfaces
+- Extend appropriate HTML element types when creating wrappers
+- Use proper typing for event handlers and refs

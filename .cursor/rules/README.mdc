@@ -1,0 +1,60 @@
+---
+alwaysApply: false
+description: Overview of all cursor rules in this project
+---
+
+# Cursor Rules Overview
+
+This directory contains cursor rules that help guide development in this project.
+
+## Available Rules
+
+### 1. Project Structure ([project-structure.mdc](mdc:.cursor/rules/project-structure.mdc))
+- **Always Applied**: Yes
+- **Purpose**: Provides an overview of the project structure, tech stack, and key files
+- **Use**: Automatically loaded for all requests
+
+### 2. shadcn/ui Setup ([shadcn-ui.mdc](mdc:.cursor/rules/shadcn-ui.mdc))
+- **Always Applied**: Yes
+- **Purpose**: Guidelines for using shadcn/ui components
+- **Covers**:
+  - Configuration details
+  - Component installation
+  - CSS variables and theming
+  - Best practices
+  - Common components reference
+
+### 3. Component Guidelines ([component-guidelines.mdc](mdc:.cursor/rules/component-guidelines.mdc))
+- **Applied To**: `*.tsx`, `*.ts` files
+- **Purpose**: Development guidelines for React and TypeScript files
+- **Covers**:
+  - shadcn/ui component usage patterns
+  - Component structure conventions
+  - Icon usage (lucide-react)
+  - Dark mode handling
+  - TypeScript best practices
+
+## How to Use These Rules
+
+1. **Automatic Application**: Rules marked with `alwaysApply: true` are automatically included in all AI interactions
+
+2. **File-Specific Rules**: Rules with `globs` patterns are automatically applied when working with matching files
+
+3. **Manual Reference**: Use the file references like `[filename.mdc](mdc:filename.mdc)` to explicitly reference a rule
+
+## Adding New Rules
+
+To create a new rule:
+
+1. Create a `.mdc` file in this directory
+2. Add frontmatter with `alwaysApply`, `description`, or `globs` as needed
+3. Write your rule content in Markdown
+4. Reference files using `[filename.ext](mdc:filename.ext)` format
+
+## Quick Start
+
+For shadcn/ui component development:
+- Install new components: `npx shadcn@latest add [component-name]`
+- Import components: `import { Button } from "@/components/ui/button"`
+- Use the `cn()` utility: `import { cn } from "@/lib/utils"`
+- Reference [shadcn-ui.mdc](mdc:.cursor/rules/shadcn-ui.mdc) for detailed guidelines
