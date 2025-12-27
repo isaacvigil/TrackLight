@@ -56,6 +56,18 @@ This directory contains cursor rules that help guide development in this project
   - Client component authentication patterns
   - Security checklist for all user data access
 
+### 6. AI Data Extraction ([ai-data-extraction.mdc](mdc:.cursor/rules/ai-data-extraction.mdc))
+- **Always Applied**: Yes
+- **Purpose**: Guidelines for using Vercel AI library to extract job data from URLs
+- **Covers**:
+  - Vercel AI SDK integration with OpenAI
+  - Structured data extraction with Zod schemas
+  - Job application data extraction patterns
+  - Error handling and fallback strategies
+  - Cost optimization with gpt-4o-mini
+  - Loading states and user feedback
+  - Security best practices for API keys
+
 ## How to Use These Rules
 
 1. **Automatic Application**: Rules marked with `alwaysApply: true` are automatically included in all AI interactions
@@ -94,3 +106,11 @@ To create a new rule:
 - **ALWAYS** filter queries by `userId` for data isolation
 - Verify user authentication before any database operations
 - Reference [authentication-authorization.mdc](mdc:.cursor/rules/authentication-authorization.mdc) for security guidelines
+
+### AI Data Extraction
+- Import: `import { generateText, Output } from "ai"`
+- Model: `import { openai } from "@ai-sdk/openai"`
+- Use `Output.object()` with Zod schemas for type-safe AI responses
+- Always implement error handling with fallback data
+- Use `gpt-4o-mini` for cost-effectiveness
+- Reference [ai-data-extraction.mdc](mdc:.cursor/rules/ai-data-extraction.mdc) for detailed guidelines

@@ -8,6 +8,13 @@
       "when": 1766833186177,
       "tag": "0000_red_unicorn",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1766861629789,
+      "tag": "0001_sloppy_domino",
+      "breakpoints": true
     }
   ]
 }

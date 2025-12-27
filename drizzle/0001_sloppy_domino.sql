@@ -1,0 +1,1 @@
+ALTER TABLE "job_applications" ADD COLUMN "remote_status" varchar(50);

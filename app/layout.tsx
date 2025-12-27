@@ -45,24 +45,20 @@ export default function RootLayout({
               <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <Logo />
                 <div className="flex items-center gap-4">
+                  <Button variant="ghost" asChild>
+                    <a href="#pricing">Pricing</a>
+                  </Button>
+                  <Button variant="ghost" asChild>
+                    <a href="mailto:contact@tracklight.app">Contact</a>
+                  </Button>
                   <SignedOut>
-                    <Button variant="ghost" asChild>
-                      <a href="/track">Track</a>
-                    </Button>
-                    <Button variant="ghost" asChild>
-                      <a href="#pricing">Pricing</a>
-                    </Button>
-                    <Button variant="ghost" asChild>
-                      <a href="mailto:contact@tracklight.app">Contact</a>
-                    </Button>
-                    <SignInButton mode="modal">
+                    <SignInButton mode="modal" forceRedirectUrl="/track">
                       <Button variant="ghost">Sign In</Button>
                     </SignInButton>
                   </SignedOut>
                   <SignedIn>
                     <UserButton />
                   </SignedIn>
-                  <ThemeSwitcher />
                 </div>
               </div>
             </Header>

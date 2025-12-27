@@ -1,0 +1,479 @@
+---
+alwaysApply: true
+---
+
+# AI Data Extraction with Vercel AI Library
+
+This project uses the **Vercel AI library** (`ai` npm package) to extract structured job application data from job post URLs using OpenAI.
+
+## Core Concept
+
+When a user submits a job post URL, we use OpenAI to automatically extract and populate job application fields instead of requiring manual data entry.
+
+## Installation
+
+```bash
+npm install ai
+```
+
+## Environment Variables
+
+Required in `.env.local`:
+
+```bash
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+## Data Schema for Job Applications
+
+Based on [db/schema/job-applications.ts](mdc:db/schema/job-applications.ts), extract the following fields from job post URLs:
+
+```typescript
+{
+  company: string,      // Company name (required)
+  role: string,         // Job title/role (required)
+  salary: string,       // Salary info (optional, e.g., "$80k-$100k", "€70,000")
+  location: string,     // Physical location only (optional, e.g., "San Francisco", "Barcelona")
+  remoteStatus: string, // Remote arrangement (optional, e.g., "Remote", "Hybrid", "In-office")
+}
+```
+
+**Note**: `applicationStatus` is always set to `"wishlist"` by default when creating from URL.
+
+## Implementation Pattern
+
+### 1. Server Action with AI Data Extraction
+
+Create or update server actions in [app/actions/job-applications.ts](mdc:app/actions/job-applications.ts):
+
+```typescript
+"use server"
+
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/lib/db";
+import { jobApplications } from "@/db/schema";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { generateText, Output } from "ai";
+import { openai } from "@ai-sdk/openai";
+
+// Zod schema for input validation
+const createJobApplicationSchema = z.object({
+  jobUrl: z.string().url("Please enter a valid URL"),
+});
+
+// Zod schema for AI-extracted data
+// IMPORTANT: OpenAI's structured output API requires ALL fields to be required
+// Use empty strings for unavailable data instead of optional fields
+const jobDataSchema = z.object({
+  company: z.string().describe("The company name"),
+  role: z.string().describe("The job title or role"),
+  salary: z.string().describe("Salary information if available, or empty string if not found"),
+  location: z.string().describe("The physical city/location name only, or empty string if not found"),
+  remoteStatus: z.string().describe("Remote work arrangement: 'Remote', 'Hybrid', 'In-office', or empty string if not specified"),
+});
+
+type CreateJobApplicationInput = z.infer<typeof createJobApplicationSchema>;
+type ExtractedJobData = z.infer<typeof jobDataSchema>;
+
+/**
+ * Fetches webpage content from a URL
+ */
+async function fetchPageContent(url: string): Promise<string> {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; JobTrackerBot/1.0)',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch: ${response.status}`);
+    }
+    
+    const html = await response.text();
+    
+    // Extract text content from HTML (simple approach - remove script/style tags)
+    const cleanedHtml = html
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    // Limit to first 8000 characters to avoid token limits
+    return cleanedHtml.substring(0, 8000);
+  } catch (error) {
+    console.error("Failed to fetch page content:", error);
+    return "";
+  }
+}
+
+/**
+ * Extracts job application data from a URL using OpenAI
+ */
+async function extractJobDataFromUrl(url: string): Promise<ExtractedJobData> {
+  try {
+    // IMPORTANT: Fetch the actual page content first
+    // AI models cannot directly access URLs - they need the content provided
+    const pageContent = await fetchPageContent(url);
+    
+    if (!pageContent) {
+      console.warn("Could not fetch page content, using fallback");
+      return {
+        company: "Company name (update required)",
+        role: "Role (update required)",
+        salary: "",
+        location: "",
+        remoteStatus: "",
+      };
+    }
+    
+    const { output } = await generateText({
+      model: openai("gpt-4o"), // Use gpt-4o for better accuracy
+      output: Output.object({
+        schema: z.object({
+          jobData: jobDataSchema,
+        }),
+      }),
+      prompt: `Extract job application information from this job posting page.
+      
+      URL: ${url}
+      
+      PAGE CONTENT:
+      ${pageContent}
+      
+      Analyze the job posting carefully and extract
+      
+      Analyze the job posting carefully and extract:
+      
+      1. Company name (required) - Look for the employer/company name
+      
+      2. Job title/role (required) - The position being advertised
+      
+      3. Salary information (if available):
+         - Preserve original format like "$80k-$100k", "€70,000/year", "£50-60k"
+         - If not found, return empty string
+      
+      4. Location (IMPORTANT - ONLY the physical location):
+         - Extract ONLY the city/place name, without remote status
+         - Examples: "San Francisco", "Sant Cugat del Vallès", "Barcelona", "London"
+         - Look for location indicators like "Locations:", "Based in:", country codes (ESP, USA, UK)
+         - If format is "COUNTRY_CODE | City Name" (e.g., "ESP | Sant Cugat del Vallès"), extract just the city name
+         - DO NOT include "Remote", "Hybrid", or "In-office" in location field
+         - If location is not found, return empty string
+      
+      5. Remote Status (separate from location):
+         - Extract the work arrangement: "Remote", "Hybrid", "In-office"
+         - Look for "Remote status:", "Remote", "Hybrid", "On-site", "In-office"
+         - Common patterns: "Remote", "Hybrid", "In-office", "Office-based"
+         - If not specified, return empty string
+      
+      IMPORTANT: Keep location and remote status completely separate.
+      For fields that cannot be determined, return an empty string.`,
+    });
+
+    return output.jobData;
+  } catch (error) {
+    console.error("AI extraction failed:", error);
+    // Fallback to placeholder data if AI fails
+    return {
+      company: "Company name (update required)",
+      role: "Role (update required)",
+      salary: "",
+      location: "",
+      remoteStatus: "",
+    };
+  }
+}
+
+export async function createJobApplication(input: CreateJobApplicationInput) {
+  const { userId } = await auth();
+  
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Validate input
+  const validatedData = createJobApplicationSchema.parse(input);
+
+  // Extract job data using AI
+  const extractedData = await extractJobDataFromUrl(validatedData.jobUrl);
+
+  // Insert into database with AI-extracted data
+  // Convert empty strings to null for optional database fields
+  const result = await db
+    .insert(jobApplications)
+    .values({
+      userId,
+      jobUrl: validatedData.jobUrl,
+      company: extractedData.company,
+      role: extractedData.role,
+      salary: extractedData.salary.trim() || null,
+      location: extractedData.location.trim() || null,
+      remoteStatus: extractedData.remoteStatus.trim() || null,
+      applicationStatus: "wishlist",
+      appliedDate: null,
+      statusChangeDate: new Date(),
+    })
+    .returning();
+
+  revalidatePath("/track");
+  return result[0];
+}
+```
+
+### 2. Model Selection
+
+Use **gpt-4o** for accurate data extraction:
+
+```typescript
+model: openai("gpt-4o")
+```
+
+Alternative models:
+- `openai("gpt-4o-mini")` - Cheaper but less accurate (may hallucinate data)
+- `openai("gpt-4-turbo")` - Balance of accuracy and cost
+
+**Note:** Job data extraction requires accuracy over cost - hallucinated data is worse than no data.
+
+### 3. Structured Output with Zod
+
+Always use `Output.object()` with Zod schemas for type-safe AI responses:
+
+**⚠️ CRITICAL: OpenAI's structured output API requires ALL fields to be required (not optional). Use empty strings for unavailable data.**
+
+```typescript
+import { generateText, Output } from "ai";
+import { z } from "zod";
+
+const { output } = await generateText({
+  model: openai("gpt-4o-mini"),
+  output: Output.object({
+    schema: z.object({
+      jobData: z.object({
+        company: z.string(),
+        role: z.string(),
+        salary: z.string(), // NOT .optional() - use empty string instead
+        location: z.string(), // NOT .optional() - use empty string instead
+        remoteStatus: z.string(), // NOT .optional() - use empty string instead
+      }),
+    }),
+  }),
+  prompt: "Extract job data from... Return empty strings for unavailable fields.",
+});
+
+// Output is fully typed based on the schema
+const company = output.jobData.company; // string
+const salary = output.jobData.salary;   // string (empty if not found)
+const location = output.jobData.location; // string (empty if not found)
+const remoteStatus = output.jobData.remoteStatus; // string (empty if not found)
+
+// Convert empty strings to null when inserting to database
+const salaryValue = salary.trim() || null;
+const locationValue = location.trim() || null;
+const remoteStatusValue = remoteStatus.trim() || null;
+```
+
+### 4. OpenAI Structured Output Constraints
+
+**⚠️ CRITICAL CONSTRAINT**: When using `Output.object()` with OpenAI models, all fields in your Zod schema MUST be required. OpenAI's API does not support optional fields.
+
+**Problem:**
+```typescript
+// ❌ THIS WILL FAIL
+const schema = z.object({
+  company: z.string(),
+  salary: z.string().optional(), // ERROR: OpenAI doesn't support this
+});
+```
+
+**Solution:**
+```typescript
+// ✅ CORRECT: Use required fields with empty strings
+const schema = z.object({
+  company: z.string(),
+  salary: z.string(), // Required, but AI returns "" if not found
+});
+
+// Convert empty strings to null when saving to database
+const values = {
+  company: extractedData.company,
+  salary: extractedData.salary.trim() || null,
+};
+```
+
+**In your prompt, explicitly tell the AI to use empty strings:**
+```typescript
+prompt: `Extract data... For fields that are not available, return an empty string.`
+```
+
+### 5. Prompt Engineering Best Practices
+
+**DO:**
+- ✅ Be specific about what data to extract
+- ✅ Provide examples of expected formats (e.g., "$80k-$100k")
+- ✅ Handle cases where URL cannot be accessed
+- ✅ Request preservation of original formatting (e.g., currency symbols)
+
+**DON'T:**
+- ❌ Ask for data not in the schema
+- ❌ Make prompts overly complex
+- ❌ Assume AI can always access external URLs
+
+**Example prompt template:**
+
+```typescript
+const prompt = `Extract job application information from this URL: ${url}
+
+Analyze the job posting carefully and extract:
+
+1. Company name (required) - Look for the employer/company name
+
+2. Job title/role (required) - The position being advertised
+
+3. Salary information (if available):
+   - Preserve original format like "$80k-$100k", "€70,000/year", "£50-60k"
+   - If not found, return empty string
+
+4. Location (IMPORTANT - ONLY the physical location):
+   - Extract ONLY the city/place name, without remote status
+   - Examples: "San Francisco", "Sant Cugat del Vallès", "Barcelona", "London"
+   - Look for location indicators like "Locations:", "Based in:", country codes (ESP, USA, UK)
+   - If format is "COUNTRY_CODE | City Name" (e.g., "ESP | Sant Cugat del Vallès"), extract just the city name
+   - DO NOT include "Remote", "Hybrid", or "In-office" in location field
+   - If location is not found, return empty string
+
+5. Remote Status (separate from location):
+   - Extract the work arrangement: "Remote", "Hybrid", "In-office"
+   - Look for "Remote status:", "Remote", "Hybrid", "On-site", "In-office"
+   - Common patterns: "Remote", "Hybrid", "In-office", "Office-based"
+   - If not specified, return empty string
+
+IMPORTANT: Keep location and remote status completely separate.
+For fields that cannot be determined, return an empty string.`;
+```
+
+### 6. Error Handling
+
+Always handle AI failures gracefully:
+
+```typescript
+try {
+  const { output } = await generateText({
+    model: openai("gpt-4o-mini"),
+    output: Output.object({ schema: jobDataSchema }),
+    prompt: `...`,
+  });
+  return output.jobData;
+} catch (error) {
+  console.error("AI extraction failed:", error);
+  // Fallback to placeholder data (use empty strings for optional fields)
+  return {
+    company: "Company name (update required)",
+    role: "Role (update required)",
+    salary: "",
+    location: "",
+    remoteStatus: "",
+  };
+}
+```
+
+### 7. Loading States in Client Components
+
+When using AI extraction, update [components/add-application-form.tsx](mdc:components/add-application-form.tsx) to show loading states:
+
+```tsx
+"use client"
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { createJobApplication } from "@/app/actions/job-applications";
+
+export function AddApplicationForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    // AI extraction happens in the server action
+    // This may take 2-5 seconds
+    try {
+      await createJobApplication({ jobUrl: formData.get("jobUrl") as string });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <Input name="jobUrl" type="url" required disabled={isSubmitting} />
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? "Extracting job data..." : "Add"}
+      </Button>
+    </form>
+  );
+}
+```
+
+## Best Practices Summary
+
+1. **Always use Server Actions** - AI calls must happen server-side (OpenAI API key security)
+2. **Fetch page content first** - AI models CANNOT access URLs directly, you must fetch and provide the content
+3. **Validate with Zod** - Both input URLs and AI outputs
+4. **Type-safe outputs** - Use `Output.object()` with Zod schemas
+5. **Error handling** - Provide fallback data if AI fails or page cannot be fetched
+6. **Use gpt-4o for accuracy** - Data extraction requires precision over cost (gpt-4o-mini may hallucinate)
+7. **Loading states** - Show clear feedback during AI processing (3-8 seconds with page fetching)
+8. **Revalidate paths** - Call `revalidatePath()` after database mutations
+9. **Security** - Never expose OpenAI API key to client side
+
+## Common Pitfalls to Avoid
+
+❌ **Don't** call AI from Client Components
+❌ **Don't** use `FormData` as Server Action parameter type (use Zod-inferred types)
+❌ **Don't** forget error handling for AI failures
+❌ **Don't** use expensive models (like GPT-4) for simple extraction tasks
+❌ **Don't** skip validation of AI output (always use Zod schemas)
+❌ **Don't** forget to set loading states in UI during AI processing
+❌ **Don't** use `.optional()` in Zod schemas for OpenAI structured output (use empty strings instead)
+
+## Testing AI Extraction
+
+Test with various job post URLs:
+- LinkedIn jobs
+- Indeed listings  
+- Company career pages
+- Remote job boards (e.g., Remote.co, We Work Remotely)
+
+Verify:
+- ✅ Company name is correctly extracted
+- ✅ Job title is accurate
+- ✅ Salary format is preserved (e.g., "$80k-$100k", "€70,000")
+- ✅ Location contains only city/place name (e.g., "Sant Cugat del Vallès", "San Francisco")
+- ✅ Remote status is separate (e.g., "Remote", "Hybrid", "In-office")
+- ✅ Fallback works if URL is inaccessible
+
+## Cost Considerations
+
+**gpt-4o pricing** (as of 2024):
+- ~$2.50 per 1M input tokens
+- ~$10.00 per 1M output tokens
+
+Typical extraction cost per job (including page content): **~$0.02-0.03**
+
+This is more expensive than gpt-4o-mini but necessary for accuracy. Hallucinated data is worse than the extra cost.
+
+For high-volume applications, consider:
+- Caching extracted data
+- Rate limiting user submissions
+- Monitoring API usage via OpenAI dashboard
+
+## References
+
+- Vercel AI SDK Docs: https://sdk.vercel.ai/docs
+- OpenAI Models: https://platform.openai.com/docs/models
+- Job Applications Schema: [db/schema/job-applications.ts](mdc:db/schema/job-applications.ts)
+- Server Actions: [app/actions/job-applications.ts](mdc:app/actions/job-applications.ts)

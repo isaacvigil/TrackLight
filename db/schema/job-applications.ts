@@ -21,6 +21,7 @@ export const jobApplications = pgTable("job_applications", {
   role: varchar("role", { length: 255 }).notNull(),
   salary: varchar("salary", { length: 100 }), // Flexible format (e.g., "$80k-$100k", "€70,000")
   location: varchar("location", { length: 255 }),
+  remoteStatus: varchar("remote_status", { length: 50 }), // e.g., "Remote", "Hybrid", "In-office"
   applicationStatus: applicationStatusEnum("application_status")
     .notNull()
     .default("wishlist"),

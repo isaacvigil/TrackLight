@@ -15,7 +15,7 @@ export default function Home() {
           <h1 className="text-4xl font-bold tracking-tight text-foreground">
             Effortless job application tracking
           </h1>
-          <SignUpButton mode="modal">
+          <SignUpButton mode="modal" forceRedirectUrl="/track">
             <Button size="lg" className="text-lg rounded-full">
               Create account for free
             </Button>
