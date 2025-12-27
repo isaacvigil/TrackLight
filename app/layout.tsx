@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Image from "next/image";
 import {
   ClerkProvider,
   SignInButton,
@@ -9,6 +8,9 @@ import {
   SignedOut,
   UserButton,
 } from "@clerk/nextjs";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeSwitcher } from "@/components/theme-switcher";
+import { Logo } from "@/components/logo";
 import "./globals.css";
 
 const inter = Inter({
@@ -28,31 +30,32 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" suppressHydrationWarning>
         <body
           className={`${inter.variable} antialiased font-sans`}
         >
-          <header className="border-b">
-            <div className="container mx-auto flex h-16 items-center justify-between px-4">
-              <Image 
-                src="/logo.svg" 
-                alt="TrackLight logo" 
-                width={94} 
-                height={50}
-                priority
-              />
-              <div className="flex items-center gap-4">
-                <SignedOut>
-                  <SignInButton mode="modal" />
-                  <SignUpButton mode="modal" />
-                </SignedOut>
-                <SignedIn>
-                  <UserButton />
-                </SignedIn>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            disableTransitionOnChange
+          >
+            <header className="border-b">
+              <div className="container mx-auto flex h-16 items-center justify-between px-4">
+                <Logo />
+                <div className="flex items-center gap-4">
+                  <ThemeSwitcher />
+                  <SignedOut>
+                    <SignInButton mode="modal" />
+                    <SignUpButton mode="modal" />
+                  </SignedOut>
+                  <SignedIn>
+                    <UserButton />
+                  </SignedIn>
+                </div>
               </div>
-            </div>
-          </header>
-          {children}
+            </header>
+            {children}
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>
