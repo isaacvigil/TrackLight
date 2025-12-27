@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import {
-  ClerkProvider,
   SignInButton,
   SignUpButton,
   SignedIn,
@@ -9,6 +8,7 @@ import {
   UserButton,
 } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ThemedClerkProvider } from "@/components/themed-clerk-provider";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Logo } from "@/components/logo";
 import "./globals.css";
@@ -29,16 +29,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body
-          className={`${inter.variable} antialiased font-sans`}
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${inter.variable} antialiased font-sans`}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          disableTransitionOnChange
         >
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            disableTransitionOnChange
-          >
+          <ThemedClerkProvider>
             <header className="border-b">
               <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <Logo />
@@ -55,9 +55,9 @@ export default function RootLayout({
               </div>
             </header>
             {children}
-          </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+          </ThemedClerkProvider>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }
