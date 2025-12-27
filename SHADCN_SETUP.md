@@ -139,3 +139,4 @@ npx shadcn@latest add separator aspect-ratio scroll-area
 
 **Note**: shadcn/ui components are copied into your codebase, so you have full control to modify them as needed. They're not installed as dependencies but as source code you own.
 
+

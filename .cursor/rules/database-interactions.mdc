@@ -1,0 +1,420 @@
+---
+alwaysApply: true
+description: Guidelines for database interactions using Drizzle ORM
+---
+# Database Interactions with Drizzle ORM
+
+**IMPORTANT**: All database interactions in this project MUST use Drizzle ORM with the defined schema. Never use raw SQL queries or other database libraries.
+
+## Architecture Rules
+
+### 🔒 Critical: Data Access Patterns
+
+1. **Data Retrieval**: MUST be done in Server Components
+   - Never fetch data in Client Components
+   - Use async Server Components to query the database
+   - Pass data to Client Components as props
+
+2. **Data Mutations**: MUST be done via Server Actions
+   - All inserts, updates, and deletes MUST use Server Actions
+   - Server Actions must be marked with `"use server"` directive
+   - Never perform mutations directly in Server Components
+
+3. **Data Validation**: MUST use Zod
+   - ALL data passed to Server Actions MUST be validated with Zod schemas
+   - Define TypeScript types from Zod schemas using `z.infer<typeof schema>`
+   - NEVER use `FormData` as the parameter type for Server Actions
+   - Always define explicit TypeScript types for Server Action parameters
+
+### Example: Data Retrieval in Server Component
+
+```tsx
+// app/applications/page.tsx
+import { db } from "@/lib/db"
+import { jobApplications } from "@/db/schema"
+import { eq } from "drizzle-orm"
+import { auth } from "@clerk/nextjs/server"
+
+// ✅ CORRECT: Fetch data in Server Component
+export default async function ApplicationsPage() {
+  const { userId } = await auth()
+  
+  if (!userId) {
+    return <div>Please sign in</div>
+  }
+
+  const applications = await db
+    .select()
+    .from(jobApplications)
+    .where(eq(jobApplications.userId, userId))
+
+  return <ApplicationsList applications={applications} />
+}
+
+// Client Component receives data as props
+// components/applications-list.tsx
+"use client"
+export function ApplicationsList({ applications }: { applications: JobApplication[] }) {
+  // Render data, handle client-side interactions
+}
+```
+
+### Example: Server Action with Zod Validation
+
+```tsx
+// app/actions/job-applications.ts
+"use server"
+
+import { db } from "@/lib/db"
+import { jobApplications } from "@/db/schema"
+import { auth } from "@clerk/nextjs/server"
+import { z } from "zod"
+import { revalidatePath } from "next/cache"
+
+// ✅ CORRECT: Define Zod schema
+const createJobApplicationSchema = z.object({
+  company: z.string().min(1, "Company name is required"),
+  role: z.string().min(1, "Role is required"),
+  salary: z.string().optional(),
+  location: z.string().optional(),
+  applicationStatus: z.enum([
+    "wishlist",
+    "applied",
+    "interview",
+    "offer",
+    "rejected",
+    "accepted",
+    "withdrawn",
+  ]),
+  jobUrl: z.string().url().optional().or(z.literal("")),
+})
+
+// ✅ CORRECT: Infer TypeScript type from Zod schema
+type CreateJobApplicationInput = z.infer<typeof createJobApplicationSchema>
+
+// ✅ CORRECT: Use TypeScript type (NOT FormData)
+export async function createJobApplication(input: CreateJobApplicationInput) {
+  const { userId } = await auth()
+  
+  if (!userId) {
+    throw new Error("Unauthorized")
+  }
+
+  // ✅ CORRECT: Validate with Zod
+  const validatedData = createJobApplicationSchema.parse(input)
+
+  const result = await db
+    .insert(jobApplications)
+    .values({
+      ...validatedData,
+      userId,
+    })
+    .returning()
+
+  revalidatePath("/applications")
+  return result[0]
+}
+
+// ❌ WRONG: Using FormData as parameter type
+export async function wrongAction(formData: FormData) {
+  // DON'T DO THIS
+}
+
+// ✅ CORRECT: Update action with Zod validation
+const updateJobApplicationSchema = z.object({
+  id: z.string(),
+  applicationStatus: z.enum([
+    "wishlist",
+    "applied",
+    "interview",
+    "offer",
+    "rejected",
+    "accepted",
+    "withdrawn",
+  ]),
+})
+
+type UpdateJobApplicationInput = z.infer<typeof updateJobApplicationSchema>
+
+export async function updateJobApplication(input: UpdateJobApplicationInput) {
+  const { userId } = await auth()
+  
+  if (!userId) {
+    throw new Error("Unauthorized")
+  }
+
+  const validatedData = updateJobApplicationSchema.parse(input)
+
+  await db
+    .update(jobApplications)
+    .set({ 
+      applicationStatus: validatedData.applicationStatus,
+      statusChangeDate: new Date(),
+    })
+    .where(eq(jobApplications.id, validatedData.id))
+
+  revalidatePath("/applications")
+}
+```
+
+### Example: Using Server Action in Client Component
+
+```tsx
+// components/create-application-form.tsx
+"use client"
+
+import { useState } from "react"
+import { createJobApplication } from "@/app/actions/job-applications"
+
+export function CreateApplicationForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setIsSubmitting(true)
+
+    const formData = new FormData(e.currentTarget)
+    
+    // ✅ CORRECT: Prepare typed data object
+    const input = {
+      company: formData.get("company") as string,
+      role: formData.get("role") as string,
+      salary: formData.get("salary") as string,
+      location: formData.get("location") as string,
+      applicationStatus: "wishlist" as const,
+      jobUrl: formData.get("jobUrl") as string,
+    }
+
+    try {
+      await createJobApplication(input)
+      // Success handling
+    } catch (error) {
+      // Error handling (Zod validation errors will be thrown here)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return <form onSubmit={handleSubmit}>{/* form fields */}</form>
+}
+```
+
+### Zod Schema Best Practices
+
+1. **Define schemas close to Server Actions** or in a dedicated schemas file
+2. **Use `z.infer<typeof schema>`** to generate TypeScript types
+3. **Validate early** at the top of Server Actions using `.parse()` or `.safeParse()`
+4. **Handle validation errors** gracefully and return user-friendly messages
+5. **Never skip validation** - always validate external input
+6. **Reuse schemas** for both create and update operations when possible
+
+## Database Configuration
+
+- **ORM**: Drizzle ORM with PostgreSQL
+- **Database Client**: Initialized in [lib/db.ts](mdc:lib/db.ts)
+- **Schema Location**: [db/schema/](mdc:db/schema/) directory
+
+## Schema Files
+
+The project uses a modular schema structure:
+
+- [db/schema/index.ts](mdc:db/schema/index.ts) - Central export file for all schemas
+- [db/schema/job-applications.ts](mdc:db/schema/job-applications.ts) - Job application schema and types
+- [db/schema/notes.ts](mdc:db/schema/notes.ts) - Notes schema with foreign key to job applications
+
+## Core Tables
+
+### Job Applications
+
+```tsx
+import { jobApplications } from "@/db/schema"
+```
+
+Fields:
+- `id` - Primary key (CUID2)
+- `userId` - Clerk user ID (required)
+- `company` - Company name (required)
+- `role` - Job role (required)
+- `salary` - Salary information (optional)
+- `location` - Job location (optional)
+- `applicationStatus` - Enum: wishlist, applied, interview, offer, rejected, accepted, withdrawn
+- `appliedDate` - Date when application was submitted
+- `statusChangeDate` - Date of last status change
+- `jobUrl` - URL to job posting
+- `createdAt` - Auto-generated creation timestamp
+- `updatedAt` - Auto-updated modification timestamp
+
+### Notes
+
+```tsx
+import { notes } from "@/db/schema"
+```
+
+Fields:
+- `id` - Primary key (CUID2)
+- `jobApplicationId` - Foreign key to job_applications (cascade delete)
+- `content` - Note content (required)
+- `createdAt` - Auto-generated creation timestamp
+- `updatedAt` - Auto-updated modification timestamp
+
+## Usage Guidelines
+
+### 1. Import Schema and Database Client
+
+```tsx
+import { db } from "@/lib/db"
+import { jobApplications, notes } from "@/db/schema"
+```
+
+### 2. Querying Data
+
+Use Drizzle's query methods:
+
+```tsx
+// Select all
+const allApplications = await db.select().from(jobApplications)
+
+// Select with conditions
+import { eq } from "drizzle-orm"
+const userApplications = await db
+  .select()
+  .from(jobApplications)
+  .where(eq(jobApplications.userId, userId))
+
+// Select with joins
+const applicationsWithNotes = await db
+  .select()
+  .from(jobApplications)
+  .leftJoin(notes, eq(notes.jobApplicationId, jobApplications.id))
+```
+
+### 3. Inserting Data
+
+```tsx
+import { jobApplications, type NewJobApplication } from "@/db/schema"
+
+const newApplication: NewJobApplication = {
+  userId: "user_123",
+  company: "Acme Corp",
+  role: "Software Engineer",
+  applicationStatus: "wishlist",
+}
+
+const result = await db
+  .insert(jobApplications)
+  .values(newApplication)
+  .returning()
+```
+
+### 4. Updating Data
+
+```tsx
+import { eq } from "drizzle-orm"
+
+await db
+  .update(jobApplications)
+  .set({ 
+    applicationStatus: "applied",
+    statusChangeDate: new Date(),
+  })
+  .where(eq(jobApplications.id, applicationId))
+```
+
+### 5. Deleting Data
+
+```tsx
+import { eq } from "drizzle-orm"
+
+// Delete with cascade - notes will be automatically deleted
+await db
+  .delete(jobApplications)
+  .where(eq(jobApplications.id, applicationId))
+```
+
+### 6. Type Safety
+
+Always use the inferred types from schemas:
+
+```tsx
+import { type JobApplication, type NewJobApplication } from "@/db/schema"
+import { type Note, type NewNote } from "@/db/schema"
+
+// For insert operations
+const newApp: NewJobApplication = { ... }
+
+// For query results
+const apps: JobApplication[] = await db.select().from(jobApplications)
+```
+
+## Best Practices
+
+1. **Always use the schema exports** from [db/schema/index.ts](mdc:db/schema/index.ts)
+2. **Never write raw SQL** - use Drizzle's query builder
+3. **Use type-safe operations** with TypeScript inferred types
+4. **Import operators from drizzle-orm** (eq, and, or, like, etc.)
+5. **Handle timestamps properly** - `createdAt` and `updatedAt` are auto-managed
+6. **Respect foreign key constraints** - notes reference job applications with cascade delete
+7. **Use the correct enum values** for `applicationStatus`
+8. **Always filter by userId** for user-specific queries to ensure data isolation
+
+## Common Drizzle Operators
+
+Import from `drizzle-orm`:
+
+```tsx
+import { eq, ne, gt, gte, lt, lte, and, or, like, ilike, inArray } from "drizzle-orm"
+```
+
+- `eq(column, value)` - Equality
+- `ne(column, value)` - Not equal
+- `gt/gte/lt/lte(column, value)` - Comparison operators
+- `and(...conditions)` - Logical AND
+- `or(...conditions)` - Logical OR
+- `like(column, pattern)` - Pattern matching (case-sensitive)
+- `ilike(column, pattern)` - Pattern matching (case-insensitive)
+- `inArray(column, values)` - IN clause
+
+## Example: Complete CRUD Operations
+
+```tsx
+import { db } from "@/lib/db"
+import { jobApplications, notes, type NewJobApplication } from "@/db/schema"
+import { eq, and } from "drizzle-orm"
+
+// CREATE
+const created = await db
+  .insert(jobApplications)
+  .values({
+    userId: "user_123",
+    company: "Acme Corp",
+    role: "Software Engineer",
+    applicationStatus: "applied",
+  })
+  .returning()
+
+// READ
+const userApps = await db
+  .select()
+  .from(jobApplications)
+  .where(eq(jobApplications.userId, "user_123"))
+
+// UPDATE
+await db
+  .update(jobApplications)
+  .set({ applicationStatus: "interview" })
+  .where(eq(jobApplications.id, "app_123"))
+
+// DELETE
+await db
+  .delete(jobApplications)
+  .where(eq(jobApplications.id, "app_123"))
+```
+
+## Migration Workflow
+
+If you need to modify the schema:
+
+1. Edit the schema files in [db/schema/](mdc:db/schema/)
+2. Generate migration: `npm run db:generate`
+3. Apply migration: `npm run db:migrate`
+4. Never modify migration files directly in the `drizzle/` directory

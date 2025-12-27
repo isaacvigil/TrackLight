@@ -1,0 +1,319 @@
+---
+alwaysApply: true
+---
+
+# Authentication & Authorization with Clerk
+
+**CRITICAL SECURITY REQUIREMENT**: All authentication is handled by Clerk. Users MUST only access their own data. Users MUST NOT be able to access any data that does not belong to them.
+
+## Authentication Provider
+
+This project uses **Clerk** for all authentication and user management:
+- Sign in/sign up components are configured in [app/layout.tsx](mdc:app/layout.tsx)
+- Clerk provides user IDs that are stored in the database
+- All user-specific data MUST be filtered by the authenticated user's ID
+
+## Data Isolation Requirements
+
+### Database Schema
+
+The [job_applications table](mdc:db/schema/job-applications.ts) has a `userId` field that stores the Clerk user ID:
+
+```typescript
+userId: text("user_id").notNull(), // Clerk user ID
+```
+
+All queries that access user data MUST filter by this `userId` field.
+
+### Getting the Current User ID
+
+In Server Components and Server Actions, use Clerk's `auth()` function:
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+
+async function getData() {
+  const { userId } = await auth();
+  
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+  
+  // Use userId for database queries
+}
+```
+
+In Client Components, use the `useUser()` hook:
+
+```typescript
+"use client"
+
+import { useUser } from "@clerk/nextjs";
+
+export function MyComponent() {
+  const { user } = useUser();
+  
+  if (!user) {
+    return <div>Please sign in</div>;
+  }
+  
+  // user.id contains the Clerk user ID
+}
+```
+
+## Required Patterns for Database Queries
+
+### ✅ CORRECT: Always Filter by User ID
+
+When querying user data, ALWAYS include the userId filter:
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/lib/db";
+import { jobApplications } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
+
+// Fetching all applications for current user
+async function getMyApplications() {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+  
+  return await db
+    .select()
+    .from(jobApplications)
+    .where(eq(jobApplications.userId, userId));
+}
+
+// Fetching a specific application
+async function getApplicationById(applicationId: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+  
+  const result = await db
+    .select()
+    .from(jobApplications)
+    .where(
+      and(
+        eq(jobApplications.id, applicationId),
+        eq(jobApplications.userId, userId) // CRITICAL: Check ownership
+      )
+    )
+    .limit(1);
+    
+  return result[0];
+}
+
+// Updating an application
+async function updateApplication(applicationId: string, data: any) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+  
+  // Only update if the record belongs to the user
+  return await db
+    .update(jobApplications)
+    .set(data)
+    .where(
+      and(
+        eq(jobApplications.id, applicationId),
+        eq(jobApplications.userId, userId) // CRITICAL: Check ownership
+      )
+    );
+}
+
+// Deleting an application
+async function deleteApplication(applicationId: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+  
+  // Only delete if the record belongs to the user
+  return await db
+    .delete(jobApplications)
+    .where(
+      and(
+        eq(jobApplications.id, applicationId),
+        eq(jobApplications.userId, userId) // CRITICAL: Check ownership
+      )
+    );
+}
+```
+
+### ❌ INCORRECT: Missing User ID Filter
+
+**NEVER** query user data without filtering by userId:
+
+```typescript
+// ❌ WRONG - This would return ALL users' applications
+async function getApplications() {
+  return await db.select().from(jobApplications);
+}
+
+// ❌ WRONG - Anyone could access any application by ID
+async function getApplication(id: string) {
+  return await db
+    .select()
+    .from(jobApplications)
+    .where(eq(jobApplications.id, id))
+    .limit(1);
+}
+
+// ❌ WRONG - Could update another user's data
+async function updateApplication(id: string, data: any) {
+  return await db
+    .update(jobApplications)
+    .set(data)
+    .where(eq(jobApplications.id, id));
+}
+```
+
+## Related Data (Notes)
+
+When accessing related data like [notes](mdc:db/schema/notes.ts), you MUST verify ownership through the parent record:
+
+```typescript
+import { notes } from "@/db/schema";
+
+// ✅ CORRECT: Verify note belongs to user's job application
+async function getNoteById(noteId: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+  
+  // Join with job_applications to verify ownership
+  const result = await db
+    .select({
+      note: notes,
+    })
+    .from(notes)
+    .innerJoin(
+      jobApplications,
+      eq(notes.jobApplicationId, jobApplications.id)
+    )
+    .where(
+      and(
+        eq(notes.id, noteId),
+        eq(jobApplications.userId, userId) // Verify through parent
+      )
+    )
+    .limit(1);
+    
+  return result[0]?.note;
+}
+
+// ✅ CORRECT: Get all notes for a user's application
+async function getNotesForApplication(applicationId: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+  
+  // First verify the application belongs to the user
+  const app = await db
+    .select()
+    .from(jobApplications)
+    .where(
+      and(
+        eq(jobApplications.id, applicationId),
+        eq(jobApplications.userId, userId)
+      )
+    )
+    .limit(1);
+    
+  if (!app[0]) throw new Error("Application not found");
+  
+  // Then get the notes
+  return await db
+    .select()
+    .from(notes)
+    .where(eq(notes.jobApplicationId, applicationId));
+}
+```
+
+## API Routes and Server Actions
+
+For API routes (app/api) and Server Actions:
+
+1. **Always authenticate first** using `auth()` from `@clerk/nextjs/server`
+2. **Check for userId** before proceeding
+3. **Filter all queries** by userId
+4. **Return 401** for unauthenticated requests
+5. **Return 403** for unauthorized access attempts
+
+Example Server Action:
+
+```typescript
+"use server"
+
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/lib/db";
+import { jobApplications } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+
+export async function createJobApplication(data: NewJobApplication) {
+  const { userId } = await auth();
+  
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+  
+  // Always set the userId from the authenticated user
+  const application = await db
+    .insert(jobApplications)
+    .values({
+      ...data,
+      userId, // CRITICAL: Use authenticated user's ID
+    })
+    .returning();
+    
+  revalidatePath("/applications");
+  return application[0];
+}
+```
+
+## Client Components
+
+When building client components that need user data:
+
+1. Use `useUser()` hook to check authentication status
+2. Show loading state while checking authentication
+3. Redirect or show sign-in prompt for unauthenticated users
+4. Fetch data from Server Actions or API routes (which handle authorization)
+
+```typescript
+"use client"
+
+import { useUser } from "@clerk/nextjs";
+
+export function MyComponent() {
+  const { user, isLoaded } = useUser();
+  
+  if (!isLoaded) {
+    return <div>Loading...</div>;
+  }
+  
+  if (!user) {
+    return <div>Please sign in to continue</div>;
+  }
+  
+  // Component content for authenticated users
+  return <div>Welcome, {user.firstName}</div>;
+}
+```
+
+## Security Checklist
+
+Before implementing any feature that accesses user data, verify:
+
+- [ ] User authentication is checked using `auth()` or `useUser()`
+- [ ] `userId` is verified before any database operations
+- [ ] All SELECT queries filter by `userId`
+- [ ] All UPDATE queries filter by `userId` 
+- [ ] All DELETE queries filter by `userId`
+- [ ] Related data access verifies ownership through parent records
+- [ ] Error handling returns appropriate status codes (401/403)
+- [ ] Server Actions include `"use server"` directive
+- [ ] Client Components include `"use client"` directive when using hooks
+
+## References
+
+- Clerk Setup: [app/layout.tsx](mdc:app/layout.tsx)
+- Database Schema: [db/schema/job-applications.ts](mdc:db/schema/job-applications.ts)
+- Database Connection: [lib/db.ts](mdc:lib/db.ts)
+- Database Queries: [.cursor/rules/database-interactions.mdc](mdc:.cursor/rules/database-interactions.mdc)

@@ -7,7 +7,7 @@ import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 
 export function ThemeSwitcher() {
-  const { theme, setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
 
   // Prevent hydration mismatch
@@ -15,17 +15,26 @@ export function ThemeSwitcher() {
     setMounted(true)
   }, [])
 
+  // Debug: Log theme changes
+  React.useEffect(() => {
+    if (mounted) {
+      console.log("Current theme:", resolvedTheme)
+    }
+  }, [resolvedTheme, mounted])
+
   if (!mounted) {
     return <Button variant="ghost" size="icon" disabled />
   }
 
   const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark")
+    const newTheme = resolvedTheme === "dark" ? "light" : "dark"
+    console.log("Toggling theme from", resolvedTheme, "to", newTheme)
+    setTheme(newTheme)
   }
 
   return (
     <Button variant="ghost" size="icon" onClick={toggleTheme}>
-      {theme === "dark" ? (
+      {resolvedTheme === "dark" ? (
         <Sun className="size-[1.2rem]" />
       ) : (
         <Moon className="size-[1.2rem]" />

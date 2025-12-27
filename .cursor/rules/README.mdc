@@ -34,6 +34,28 @@ This directory contains cursor rules that help guide development in this project
   - Dark mode handling
   - TypeScript best practices
 
+### 4. Database Interactions ([database-interactions.mdc](mdc:.cursor/rules/database-interactions.mdc))
+- **Always Applied**: Yes
+- **Purpose**: Guidelines for all database operations using Drizzle ORM
+- **Covers**:
+  - Drizzle ORM setup and schema structure
+  - CRUD operations with type safety
+  - Query patterns and operators
+  - Schema references for job applications and notes
+  - Best practices for database interactions
+  - Migration workflow
+
+### 5. Authentication & Authorization ([authentication-authorization.mdc](mdc:.cursor/rules/authentication-authorization.mdc))
+- **Always Applied**: Yes
+- **Purpose**: Critical security guidelines for user authentication and data access control
+- **Covers**:
+  - Clerk authentication integration
+  - User data isolation requirements
+  - Required patterns for database queries with userId filtering
+  - Server Actions and API route security
+  - Client component authentication patterns
+  - Security checklist for all user data access
+
 ## How to Use These Rules
 
 1. **Automatic Application**: Rules marked with `alwaysApply: true` are automatically included in all AI interactions
@@ -53,8 +75,22 @@ To create a new rule:
 
 ## Quick Start
 
-For shadcn/ui component development:
+### shadcn/ui Components
 - Install new components: `npx shadcn@latest add [component-name]`
 - Import components: `import { Button } from "@/components/ui/button"`
 - Use the `cn()` utility: `import { cn } from "@/lib/utils"`
 - Reference [shadcn-ui.mdc](mdc:.cursor/rules/shadcn-ui.mdc) for detailed guidelines
+
+### Database Operations
+- Import: `import { db } from "@/lib/db"`
+- Import schemas: `import { jobApplications, notes } from "@/db/schema"`
+- Import operators: `import { eq, and, or } from "drizzle-orm"`
+- Use type-safe operations with Drizzle query builder
+- Reference [database-interactions.mdc](mdc:.cursor/rules/database-interactions.mdc) for detailed guidelines
+
+### Authentication & Authorization
+- Server: `import { auth } from "@clerk/nextjs/server"`
+- Client: `import { useUser } from "@clerk/nextjs"`
+- **ALWAYS** filter queries by `userId` for data isolation
+- Verify user authentication before any database operations
+- Reference [authentication-authorization.mdc](mdc:.cursor/rules/authentication-authorization.mdc) for security guidelines
