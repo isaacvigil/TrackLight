@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import {
   SignInButton,
-  SignUpButton,
   SignedIn,
   SignedOut,
   UserButton,
@@ -11,6 +10,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ThemedClerkProvider } from "@/components/themed-clerk-provider";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Logo } from "@/components/logo";
+import { Button } from "@/components/ui/button";
+import { Header } from "@/components/ui/header";
 import "./globals.css";
 
 const inter = Inter({
@@ -40,22 +41,37 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ThemedClerkProvider>
-            <header className="border-b">
+            <Header variant="glass">
               <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <Logo />
                 <div className="flex items-center gap-4">
-                  <ThemeSwitcher />
                   <SignedOut>
-                    <SignInButton mode="modal" />
-                    <SignUpButton mode="modal" />
+                    <Button variant="ghost" asChild>
+                      <a href="/track">Track</a>
+                    </Button>
+                    <Button variant="ghost" asChild>
+                      <a href="#pricing">Pricing</a>
+                    </Button>
+                    <Button variant="ghost" asChild>
+                      <a href="mailto:contact@tracklight.app">Contact</a>
+                    </Button>
+                    <SignInButton mode="modal">
+                      <Button variant="ghost">Sign In</Button>
+                    </SignInButton>
                   </SignedOut>
                   <SignedIn>
                     <UserButton />
                   </SignedIn>
+                  <ThemeSwitcher />
                 </div>
               </div>
-            </header>
+            </Header>
             {children}
+            <footer className="border-t py-6 mt-auto">
+              <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+                TrackLight © {new Date().getFullYear()}
+              </div>
+            </footer>
           </ThemedClerkProvider>
         </ThemeProvider>
       </body>
