@@ -16,6 +16,8 @@ import { redirect } from "next/navigation";
 import { AddApplicationForm } from "@/components/add-application-form";
 import { ExternalLink } from "lucide-react";
 import { DeleteApplicationButton } from "@/components/delete-application-button";
+import { EditableCell } from "@/components/editable-cell";
+import { EditableStatusCell } from "@/components/editable-status-cell";
 
 export default async function TrackPage() {
   // ✅ CORRECT: Authenticate user first
@@ -74,15 +76,47 @@ export default async function TrackPage() {
                 ) : (
                   applications.map((app) => (
                     <TableRow key={app.id}>
-                      <TableCell className="font-medium">{app.company}</TableCell>
-                      <TableCell>{app.role}</TableCell>
-                      <TableCell>{app.location || "—"}</TableCell>
-                      <TableCell>{app.remoteStatus || "—"}</TableCell>
-                      <TableCell>{app.salary || "—"}</TableCell>
-                      <TableCell>
-                        <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-primary/10 text-primary">
-                          {app.applicationStatus}
-                        </span>
+                      <TableCell className="font-medium p-0">
+                        <EditableCell
+                          applicationId={app.id}
+                          field="company"
+                          value={app.company}
+                          className="font-medium"
+                        />
+                      </TableCell>
+                      <TableCell className="p-0">
+                        <EditableCell
+                          applicationId={app.id}
+                          field="role"
+                          value={app.role}
+                        />
+                      </TableCell>
+                      <TableCell className="p-0">
+                        <EditableCell
+                          applicationId={app.id}
+                          field="location"
+                          value={app.location}
+                        />
+                      </TableCell>
+                      <TableCell className="p-0">
+                        <EditableCell
+                          applicationId={app.id}
+                          field="remoteStatus"
+                          value={app.remoteStatus}
+                        />
+                      </TableCell>
+                      <TableCell className="p-0">
+                        <EditableCell
+                          applicationId={app.id}
+                          field="salary"
+                          value={app.salary}
+                        />
+                      </TableCell>
+                      <TableCell className="p-0">
+                        <EditableStatusCell
+                          applicationId={app.id}
+                          value={app.applicationStatus}
+                        />
                       </TableCell>
                       <TableCell>
                         {app.appliedDate 

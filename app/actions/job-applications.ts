@@ -215,11 +215,71 @@ export async function createJobApplication(input: CreateJobApplicationInput) {
       salary: extractedData.salary.trim() || null,
       location: extractedData.location.trim() || null,
       remoteStatus: extractedData.remoteStatus.trim() || null,
-      applicationStatus: "wishlist",
+      applicationStatus: "bookmarked",
       appliedDate: null,
       statusChangeDate: new Date(),
     })
     .returning();
+
+  revalidatePath("/track");
+  return result[0];
+}
+
+/**
+ * Updates a job application field
+ * Only allows updates if the application belongs to the authenticated user
+ */
+export async function updateJobApplicationField(
+  applicationId: string,
+  field: string,
+  value: string | null
+) {
+  // ✅ CORRECT: Authenticate user first
+  const { userId } = await auth();
+  
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Define allowed fields for updates
+  const allowedFields = [
+    "company",
+    "role",
+    "salary",
+    "location",
+    "remoteStatus",
+    "applicationStatus",
+  ];
+
+  if (!allowedFields.includes(field)) {
+    throw new Error("Invalid field");
+  }
+
+  // Build the update object dynamically
+  const updateData: Record<string, string | null | Date> = {
+    [field]: value,
+  };
+
+  // If updating status, also update statusChangeDate
+  if (field === "applicationStatus") {
+    updateData.statusChangeDate = new Date();
+  }
+
+  // ✅ CORRECT: Update only if the record belongs to the user
+  const result = await db
+    .update(jobApplications)
+    .set(updateData)
+    .where(
+      and(
+        eq(jobApplications.id, applicationId),
+        eq(jobApplications.userId, userId) // CRITICAL: Check ownership
+      )
+    )
+    .returning();
+
+  if (result.length === 0) {
+    throw new Error("Application not found or you don't have permission to update it");
+  }
 
   revalidatePath("/track");
   return result[0];

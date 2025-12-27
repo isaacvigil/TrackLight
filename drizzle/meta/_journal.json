@@ -15,6 +15,13 @@
       "when": 1766861629789,
       "tag": "0001_sloppy_domino",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1766866768399,
+      "tag": "0002_pale_sentinel",
+      "breakpoints": true
     }
   ]
 }
