@@ -369,3 +369,47 @@ export async function deleteJobApplication(applicationId: string) {
   return result[0];
 }
 
+/**
+ * Updates the notes field for a job application
+ * Only allows updates if the application belongs to the authenticated user
+ */
+export async function updateJobApplicationNotes(input: { id: string; notes: string | null }) {
+  const { userId, has } = await auth();
+  
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Check notes feature access
+  if (!has({ feature: 'notes' })) {
+    throw new Error("Upgrade to Pro to access notes feature");
+  }
+
+  // Validate input
+  const updateNotesSchema = z.object({
+    id: z.string().min(1, "Application ID is required"),
+    notes: z.string().max(50000, "Notes are too long").nullable(),
+  });
+
+  const validatedData = updateNotesSchema.parse(input);
+
+  // Update only if the record belongs to the user
+  const result = await db
+    .update(jobApplications)
+    .set({ notes: validatedData.notes })
+    .where(
+      and(
+        eq(jobApplications.id, validatedData.id),
+        eq(jobApplications.userId, userId)
+      )
+    )
+    .returning();
+
+  if (result.length === 0) {
+    throw new Error("Application not found or you don't have permission to update it");
+  }
+
+  revalidatePath("/track");
+  return result[0];
+}
+

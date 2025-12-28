@@ -4,15 +4,18 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    // Add the remote_status column if it doesn't exist
+    // Drop the notes table (CASCADE will remove foreign key constraints)
+    await db.execute(sql`DROP TABLE IF EXISTS notes CASCADE`);
+    
+    // Add the notes column to job_applications if it doesn't exist
     await db.execute(sql`
       ALTER TABLE job_applications 
-      ADD COLUMN IF NOT EXISTS remote_status varchar(50)
+      ADD COLUMN IF NOT EXISTS notes text
     `);
     
     return NextResponse.json({ 
       success: true, 
-      message: "✅ Successfully added remote_status column!" 
+      message: "✅ Successfully migrated notes to single field!" 
     });
   } catch (error) {
     console.error("Migration error:", error);

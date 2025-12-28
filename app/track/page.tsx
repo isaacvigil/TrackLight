@@ -37,10 +37,10 @@ export default async function TrackPage() {
   const currentCount = applications.length;
 
   return (
-    <div className="min-h-screen bg-background p-8 rounded-3xl">
+    <div className="min-h-screen bg-background p-2 md:p-8 rounded-3xl">
       <main className="container mx-auto space-y-8 px-4">
         <div className="space-y-4">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <h2 className="text-2xl font-bold tracking-tight shrink-0">Job applications tracker</h2>
             <div className="flex-1 max-w-2xl">
               <AddApplicationForm />

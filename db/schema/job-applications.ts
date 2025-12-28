@@ -26,6 +26,7 @@ export const jobApplications = pgTable("job_applications", {
   appliedDate: timestamp("applied_date", { mode: "date" }),
   statusChangeDate: timestamp("status_change_date", { mode: "date" }),
   jobUrl: text("job_url"),
+  notes: text("notes"), // Single notes field for the application
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "date" })
     .notNull()

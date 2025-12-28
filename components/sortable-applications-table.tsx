@@ -221,7 +221,9 @@ export function SortableApplicationsTable({ applications }: SortableApplications
                   )}
                   <NotesDialog 
                     applicationId={app.id}
+                    role={app.role}
                     companyName={app.company}
+                    initialNotes={app.notes}
                   />
                   <DeleteApplicationButton applicationId={app.id} />
                 </div>
