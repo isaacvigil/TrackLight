@@ -235,7 +235,7 @@ export async function createJobApplication(input: CreateJobApplicationInput) {
       remoteStatus: extractedData.remoteStatus.trim() || null,
       applicationStatus: "applied",
       appliedDate: new Date(), // Set to current date when adding job
-      statusChangeDate: new Date(),
+      statusChangeDate: null, // Only set when user explicitly changes status
     })
     .returning();
 
@@ -273,14 +273,44 @@ export async function updateJobApplicationField(
     throw new Error("Invalid field");
   }
 
+  // If updating status, we need to check the current status first
+  let currentApplication = null;
+  if (field === "applicationStatus") {
+    const apps = await db
+      .select()
+      .from(jobApplications)
+      .where(
+        and(
+          eq(jobApplications.id, applicationId),
+          eq(jobApplications.userId, userId)
+        )
+      )
+      .limit(1);
+    
+    if (apps.length === 0) {
+      throw new Error("Application not found or you don't have permission to update it");
+    }
+    
+    currentApplication = apps[0];
+  }
+
   // Build the update object dynamically
   const updateData: Record<string, string | null | Date> = {
     [field]: value,
   };
 
-  // If updating status, also update statusChangeDate
-  if (field === "applicationStatus") {
+  // If updating status, also update statusChangeDate and handle appliedDate
+  if (field === "applicationStatus" && currentApplication) {
     updateData.statusChangeDate = new Date();
+    
+    // If changing TO bookmarked, clear the appliedDate (not yet applied)
+    if (value === "bookmarked") {
+      updateData.appliedDate = null;
+    }
+    // If changing FROM bookmarked to any other status, set appliedDate to now
+    else if (currentApplication.applicationStatus === "bookmarked" && !currentApplication.appliedDate) {
+      updateData.appliedDate = new Date();
+    }
   }
 
   // ✅ CORRECT: Update only if the record belongs to the user

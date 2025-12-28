@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { StickyNote, Trash2, Edit2, Plus, X } from "lucide-react";
+import { SquarePen, Trash2, Edit2, Plus, X } from "lucide-react";
 import { createNote, getNotesForApplication, updateNote, deleteNote } from "@/app/actions/notes";
 import type { Note } from "@/db/schema";
 import { useAuth } from "@clerk/nextjs";
@@ -24,7 +24,7 @@ interface NotesDialogProps {
 
 export function NotesDialog({ applicationId, companyName }: NotesDialogProps) {
   const { has } = useAuth();
-  const hasNotesAccess = has({ feature: 'notes' });
+  const hasNotesAccess = has ? has({ feature: 'notes' }) : false;
   
   const [open, setOpen] = useState(false);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -35,12 +35,19 @@ export function NotesDialog({ applicationId, companyName }: NotesDialogProps) {
   const [editingContent, setEditingContent] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // Load notes when dialog opens
+  // Load notes on mount to show badge count immediately
+  useEffect(() => {
+    if (hasNotesAccess) {
+      loadNotes();
+    }
+  }, [hasNotesAccess]);
+
+  // Reload notes when dialog opens to get fresh data
   useEffect(() => {
     if (open && hasNotesAccess) {
       loadNotes();
     }
-  }, [open, hasNotesAccess]);
+  }, [open]);
 
   async function loadNotes() {
     if (!hasNotesAccess) return;
@@ -119,8 +126,8 @@ export function NotesDialog({ applicationId, companyName }: NotesDialogProps) {
     return (
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-8 px-2">
-            <StickyNote className="size-4" />
+          <Button variant="ghost" size="sm" className="h-10 w-10 px-2">
+            <SquarePen className="size-5" />
           </Button>
         </DialogTrigger>
         <DialogContent>
@@ -146,8 +153,8 @@ export function NotesDialog({ applicationId, companyName }: NotesDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-8 px-2 relative">
-          <StickyNote className="size-4" />
+        <Button variant="ghost" size="sm" className="h-10 w-10 px-2 relative">
+          <SquarePen className="size-5" />
           {notes.length > 0 && (
             <span className="absolute -top-1 -right-1 size-4 text-[10px] bg-primary text-primary-foreground rounded-full flex items-center justify-center">
               {notes.length}

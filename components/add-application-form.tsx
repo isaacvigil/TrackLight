@@ -38,18 +38,25 @@ export function AddApplicationForm() {
 
   return (
     <div className="space-y-2">
-      <form ref={formRef} onSubmit={handleSubmit} className="flex gap-2">
-        <Input
-          name="jobUrl"
-          type="url"
-          placeholder="Paste job post link here..."
-          required
-          disabled={isSubmitting}
-          className="flex-1"
-        />
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Extracting job data..." : "Add"}
-        </Button>
+      <form ref={formRef} onSubmit={handleSubmit}>
+        <div className="relative">
+          <Input
+            name="jobUrl"
+            type="url"
+            placeholder="Paste job post link here..."
+            required
+            disabled={isSubmitting}
+            className="pl-4 pr-20 rounded-3xl h-12"
+          />
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+            variant="ghost"
+            className="absolute right-1 top-1 h-10 rounded-3xl"
+          >
+            {isSubmitting ? "Extracting job data..." : "Add"}
+          </Button>
+        </div>
       </form>
       {error && (
         <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm">

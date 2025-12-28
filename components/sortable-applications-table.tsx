@@ -9,7 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ExternalLink, ChevronUp, ChevronDown } from "lucide-react";
+import { Link2, ChevronUp, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { DeleteApplicationButton } from "@/components/delete-application-button";
 import { EditableCell } from "@/components/editable-cell";
 import { EditableStatusCell } from "@/components/editable-status-cell";
@@ -84,12 +85,15 @@ export function SortableApplicationsTable({ applications }: SortableApplications
     });
   }, [applications, sortField, sortDirection]);
 
-  function SortableHeader({ field, children }: { field: SortField; children: React.ReactNode }) {
+  function SortableHeader({ field, children, className }: { field: SortField; children: React.ReactNode; className?: string }) {
     const isActive = sortField === field;
     
     return (
       <TableHead 
-        className="cursor-pointer select-none hover:bg-muted/50 transition-colors"
+        className={cn(
+          "cursor-pointer select-none hover:bg-muted/50 transition-colors",
+          className
+        )}
         onClick={() => handleSort(field)}
       >
         <div className="flex items-center gap-1">
@@ -119,25 +123,23 @@ export function SortableApplicationsTable({ applications }: SortableApplications
 
   return (
     <Table>
-      <TableHeader>
+      <TableHeader className="mb-2">
         <TableRow>
-          <SortableHeader field="company">Company</SortableHeader>
-          <SortableHeader field="role">Role</SortableHeader>
-          <SortableHeader field="location">Location</SortableHeader>
-          <SortableHeader field="remoteStatus">Remote</SortableHeader>
-          <SortableHeader field="salary">Salary</SortableHeader>
-          <SortableHeader field="applicationStatus">Status</SortableHeader>
-          <SortableHeader field="appliedDate">Date Applied</SortableHeader>
-          <SortableHeader field="statusChangeDate">Status Changed on</SortableHeader>
-          <TableHead>Link</TableHead>
-          <TableHead>Notes</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <SortableHeader field="company" className="w-[180px]">Company</SortableHeader>
+          <SortableHeader field="role" className="w-[200px]">Role</SortableHeader>
+          <SortableHeader field="location" className="w-[150px]">Location</SortableHeader>
+          <SortableHeader field="remoteStatus" className="w-[110px]">Remote</SortableHeader>
+          <SortableHeader field="salary" className="w-[130px]">Salary</SortableHeader>
+          <SortableHeader field="applicationStatus" className="w-[140px]">Status</SortableHeader>
+          <SortableHeader field="appliedDate" className="w-[115px]">Applied on</SortableHeader>
+          <SortableHeader field="statusChangeDate" className="w-[120px]">Status changed</SortableHeader>
+          <TableHead className="text-right w-[145px]"></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {sortedApplications.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={11} className="text-center text-muted-foreground">
+            <TableCell colSpan={9} className="text-center text-muted-foreground">
               No applications yet. Start tracking your job opportunities!
             </TableCell>
           </TableRow>
@@ -197,29 +199,32 @@ export function SortableApplicationsTable({ applications }: SortableApplications
                   : "—"
                 }
               </TableCell>
-              <TableCell>
-                {app.jobUrl ? (
-                  <a
-                    href={app.jobUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-primary hover:underline"
-                  >
-                    Open
-                    <ExternalLink className="size-3" />
-                  </a>
-                ) : (
-                  "—"
-                )}
-              </TableCell>
-              <TableCell>
-                <NotesDialog 
-                  applicationId={app.id}
-                  companyName={app.company}
-                />
-              </TableCell>
               <TableCell className="text-right">
-                <DeleteApplicationButton applicationId={app.id} />
+                <div className="flex items-center justify-end gap-1">
+                  {app.jobUrl ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-10 w-10 px-2"
+                      asChild
+                    >
+                      <a
+                        href={app.jobUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Link2 className="size-6" />
+                      </a>
+                    </Button>
+                  ) : (
+                    <div className="h-10 w-10" />
+                  )}
+                  <NotesDialog 
+                    applicationId={app.id}
+                    companyName={app.company}
+                  />
+                  <DeleteApplicationButton applicationId={app.id} />
+                </div>
               </TableCell>
             </TableRow>
           ))

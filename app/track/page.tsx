@@ -37,17 +37,19 @@ export default async function TrackPage() {
   const currentCount = applications.length;
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <main className="container mx-auto max-w-7xl space-y-8">
-        <AddApplicationForm />
-        
+    <div className="min-h-screen bg-background p-8 rounded-3xl">
+      <main className="container mx-auto space-y-8 px-4">
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight">Job applications tracker</h2>
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-2xl font-bold tracking-tight shrink-0">Job applications tracker</h2>
+            <div className="flex-1 max-w-2xl">
+              <AddApplicationForm />
             </div>
+          </div>
+          
+          <div>
             <span className={currentCount >= maxRows ? "text-destructive font-medium" : currentCount >= maxRows * 0.8 ? "text-yellow-600 dark:text-yellow-500 font-medium" : "text-muted-foreground"}>
-              {currentCount} / {maxRows} applications
+              {currentCount} / {maxRows} tracked
             </span>
           </div>
 

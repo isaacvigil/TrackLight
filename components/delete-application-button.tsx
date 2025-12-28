@@ -43,7 +43,7 @@ export function DeleteApplicationButton({ applicationId }: DeleteApplicationButt
           size="sm"
           disabled={isDeleting}
         >
-          <Trash2 className="size-4" />
+          <Trash2 className="size-5" />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
