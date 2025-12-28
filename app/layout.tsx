@@ -8,7 +8,6 @@ import {
 } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemedClerkProvider } from "@/components/themed-clerk-provider";
-import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/ui/header";
@@ -36,7 +35,8 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="dark"
+          forcedTheme="dark"
           enableSystem={false}
           disableTransitionOnChange
         >

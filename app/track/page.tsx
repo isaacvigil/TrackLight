@@ -3,8 +3,7 @@ import { db } from "@/lib/db";
 import { jobApplications } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { redirect } from "next/navigation";
-import { AddApplicationForm } from "@/components/add-application-form";
-import { SortableApplicationsTable } from "@/components/sortable-applications-table";
+import { ApplicationsTracker } from "@/components/applications-tracker";
 
 export default async function TrackPage() {
   // ✅ CORRECT: Authenticate user first
@@ -38,23 +37,12 @@ export default async function TrackPage() {
 
   return (
     <div className="min-h-screen bg-background p-2 md:p-8 rounded-3xl">
-      <main className="container mx-auto space-y-8 px-4">
-        <div className="space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <h2 className="text-2xl font-bold tracking-tight shrink-0">Job applications tracker</h2>
-            <div className="flex-1 max-w-2xl">
-              <AddApplicationForm />
-            </div>
-          </div>
-          
-          <div>
-            <span className={currentCount >= maxRows ? "text-destructive font-medium" : currentCount >= maxRows * 0.8 ? "text-yellow-600 dark:text-yellow-500 font-medium" : "text-muted-foreground"}>
-              {currentCount} / {maxRows} tracked
-            </span>
-          </div>
-
-          <SortableApplicationsTable applications={applications} />
-        </div>
+      <main className="max-w-5xl mx-auto space-y-8 px-4">
+        <ApplicationsTracker 
+          applications={applications}
+          maxRows={maxRows}
+          currentCount={currentCount}
+        />
       </main>
     </div>
   );
