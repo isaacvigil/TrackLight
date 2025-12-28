@@ -2,9 +2,17 @@ import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/ca
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SignUpButton } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { Sparkles, Zap, Shield } from "lucide-react";
 
-export default function Home() {
+export default async function Home() {
+  // Redirect authenticated users to the track page
+  const { userId } = await auth();
+  
+  if (userId) {
+    redirect("/track");
+  }
   return (
     <div 
       className="flex min-h-screen items-center justify-center bg-background p-8 bg-cover bg-center bg-no-repeat"

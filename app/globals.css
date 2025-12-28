@@ -77,3 +77,35 @@ body {
   color: var(--color-foreground);
   font-family: var(--font-sans), sans-serif;
 }
+
+/* Clerk Pricing Table Customization */
+/* Make "Billed annually" text larger */
+.cl-pricingTableCardPeriodToggle span[data-localization-key="billing.billedAnnually"],
+.cl-pricingTableCardPeriodToggle span[data-localization-key="billing.billedMonthly"] {
+  font-size: 1rem !important; /* 16px */
+  font-weight: 500 !important;
+}
+
+/* Make "Always free" text larger */
+.cl-pricingTableCardFeePeriodNotice[data-localization-key="billing.alwaysFree"] {
+  font-size: 1rem !important; /* 16px */
+  font-weight: 500 !important;
+}
+
+/* Make all feature list items larger */
+.cl-pricingTableCardFeature,
+.cl-pricingTableCardFeature *,
+[class*="cl-pricingTableCardFeature"] {
+  font-size: 1rem !important; /* 16px */
+}
+
+/* Target feature text more specifically */
+.cl-pricingTableCard ul li,
+.cl-pricingTableCardContent li {
+  font-size: 1rem !important; /* 16px */
+}
+
+/* Make pricing table buttons larger */
+.cl-pricingTableCardFooterButton {
+  font-size: 1rem !important; /* 16px */
+}

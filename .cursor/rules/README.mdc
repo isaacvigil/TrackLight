@@ -68,6 +68,20 @@ This directory contains cursor rules that help guide development in this project
   - Loading states and user feedback
   - Security best practices for API keys
 
+### 7. Clerk Billing ([clerk-billing.mdc](mdc:.cursor/rules/clerk-billing.mdc))
+- **Always Applied**: Yes
+- **Purpose**: Complete guide to implementing Clerk Billing for subscription management and feature access control
+- **Covers**:
+  - Available plans: `free_user`, `pro`, `unemployed`
+  - Available features: `1k_rows`, `delete_rows`, `notes`
+  - Protecting UI elements with `has()` method and `<Protect />` component
+  - Server and client component access control patterns
+  - Route protection using middleware
+  - Server Actions with billing checks
+  - Row limit enforcement
+  - Upgrade prompts and CTAs
+  - Plan-feature matrix and best practices
+
 ## How to Use These Rules
 
 1. **Automatic Application**: Rules marked with `alwaysApply: true` are automatically included in all AI interactions
@@ -114,3 +128,12 @@ To create a new rule:
 - Always implement error handling with fallback data
 - Use `gpt-4o-mini` for cost-effectiveness
 - Reference [ai-data-extraction.mdc](mdc:.cursor/rules/ai-data-extraction.mdc) for detailed guidelines
+
+### Clerk Billing
+- Server: `import { auth } from "@clerk/nextjs/server"` then use `const { has } = await auth()`
+- Client: `import { useAuth } from "@clerk/nextjs"` then use `const { has } = useAuth()`
+- Protect UI: `import { Protect } from "@clerk/nextjs"` then use `<Protect feature="..." />`
+- Check access: `has({ feature: 'delete_rows' })` or `has({ plan: 'pro' })`
+- **ALWAYS** check access server-side in Server Actions before operations
+- Display pricing: `import { PricingTable } from '@clerk/nextjs'`
+- Reference [clerk-billing.mdc](mdc:.cursor/rules/clerk-billing.mdc) for detailed guidelines

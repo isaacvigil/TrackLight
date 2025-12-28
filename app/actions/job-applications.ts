@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { generateText, Output } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { eq, and } from "drizzle-orm";
+import { eq, and, count } from "drizzle-orm";
 
 // ✅ CORRECT: Define Zod schema for validation
 const createJobApplicationSchema = z.object({
@@ -188,7 +188,7 @@ async function extractJobDataFromUrl(url: string): Promise<ExtractedJobData> {
 
 export async function createJobApplication(input: CreateJobApplicationInput) {
   // ✅ CORRECT: Authenticate user first
-  const { userId } = await auth();
+  const { userId, has } = await auth();
   
   if (!userId) {
     throw new Error("Unauthorized");
@@ -196,6 +196,23 @@ export async function createJobApplication(input: CreateJobApplicationInput) {
 
   // ✅ CORRECT: Validate with Zod
   const validatedData = createJobApplicationSchema.parse(input);
+
+  // Check row limit before processing
+  const [{ count: rowCount }] = await db
+    .select({ count: count() })
+    .from(jobApplications)
+    .where(eq(jobApplications.userId, userId));
+
+  const has1kRows = has({ feature: '1k_rows' });
+  const maxRows = has1kRows ? 1000 : 25;
+
+  if (rowCount >= maxRows) {
+    throw new Error(
+      `You've reached your limit of ${maxRows} applications. ${
+        !has1kRows ? 'Upgrade to Pro to track up to 1,000 applications.' : ''
+      }`
+    );
+  }
 
   // Normalize LinkedIn URLs to cleaner format
   const normalizedUrl = normalizeLinkedInUrl(validatedData.jobUrl);
@@ -205,6 +222,7 @@ export async function createJobApplication(input: CreateJobApplicationInput) {
 
   // ✅ CORRECT: Insert with userId from authenticated user and AI-extracted data
   // Convert empty strings to null for optional database fields
+  // Default status is "applied" because users paste job links after applying
   const result = await db
     .insert(jobApplications)
     .values({
@@ -215,8 +233,8 @@ export async function createJobApplication(input: CreateJobApplicationInput) {
       salary: extractedData.salary.trim() || null,
       location: extractedData.location.trim() || null,
       remoteStatus: extractedData.remoteStatus.trim() || null,
-      applicationStatus: "bookmarked",
-      appliedDate: null,
+      applicationStatus: "applied",
+      appliedDate: new Date(), // Set to current date when adding job
       statusChangeDate: new Date(),
     })
     .returning();
@@ -279,6 +297,11 @@ export async function updateJobApplicationField(
 
   if (result.length === 0) {
     throw new Error("Application not found or you don't have permission to update it");
+  }
+
+  if (result.length > 1) {
+    console.error("WARNING: Multiple rows updated!", { applicationId, userId, field, rowsAffected: result.length });
+    throw new Error("Unexpected error: Multiple rows were updated");
   }
 
   revalidatePath("/track");

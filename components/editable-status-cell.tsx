@@ -25,11 +25,11 @@ const statusOptions = [
 ];
 
 const statusColors: Record<string, string> = {
-  bookmarked: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-  applied: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
-  interviewing: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
-  no_match: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
-  accepted: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300",
+  bookmarked: "text-slate-700 dark:text-slate-300",
+  applied: "text-blue-700 dark:text-blue-300",
+  interviewing: "text-purple-700 dark:text-purple-300",
+  no_match: "text-red-700 dark:text-red-300",
+  accepted: "text-emerald-700 dark:text-emerald-300",
 };
 
 export function EditableStatusCell({ applicationId, value }: EditableStatusCellProps) {
@@ -55,18 +55,18 @@ export function EditableStatusCell({ applicationId, value }: EditableStatusCellP
     <Select value={value} onValueChange={handleChange} disabled={isSaving}>
       <SelectTrigger
         className={cn(
-          "h-8 w-full border-0 focus:ring-0",
-          statusColors[value] || "bg-primary/10 text-primary"
+          "h-10 w-full border border-border focus:ring-0 text-base font-normal rounded-none !bg-transparent dark:!bg-transparent hover:!bg-transparent",
+          statusColors[value] || "text-primary"
         )}
       >
         <SelectValue>
-          <span className="text-xs font-medium">{currentLabel}</span>
+          <span className="text-base font-normal">{currentLabel}</span>
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {statusOptions.map((option) => (
           <SelectItem key={option.value} value={option.value}>
-            <span className={cn("text-xs font-medium", statusColors[option.value])}>
+            <span className={cn("text-base font-normal", statusColors[option.value])}>
               {option.label}
             </span>
           </SelectItem>

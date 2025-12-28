@@ -44,9 +44,9 @@ export default function RootLayout({
             <Header variant="glass">
               <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <Logo />
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
                   <Button variant="ghost" asChild>
-                    <a href="#pricing">Pricing</a>
+                    <a href="/pricing">Pricing</a>
                   </Button>
                   <Button variant="ghost" asChild>
                     <a href="mailto:contact@tracklight.app">Contact</a>
@@ -63,7 +63,7 @@ export default function RootLayout({
               </div>
             </Header>
             {children}
-            <footer className="border-t py-6 mt-auto">
+            <footer className="py-6 mt-auto">
               <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
                 TrackLight © {new Date().getFullYear()}
               </div>

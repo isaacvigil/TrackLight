@@ -71,7 +71,7 @@ export function EditableCell({
         onBlur={handleSave}
         onKeyDown={handleKeyDown}
         disabled={isSaving}
-        className="h-8"
+        className="h-10 text-base rounded-none"
       />
     );
   }
@@ -80,7 +80,7 @@ export function EditableCell({
     <div
       onClick={() => setIsEditing(true)}
       className={cn(
-        "cursor-pointer rounded px-2 py-1 hover:bg-muted/50 transition-colors min-h-[2rem] flex items-center",
+        "cursor-pointer rounded-none px-2 py-1 border border-border hover:bg-muted/50 hover:border-muted-foreground/30 transition-colors h-10 flex items-center text-base",
         className
       )}
     >

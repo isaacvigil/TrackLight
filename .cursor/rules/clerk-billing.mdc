@@ -1,0 +1,522 @@
+---
+alwaysApply: true
+description: Clerk billing implementation for subscription management and feature access control
+---
+
+# Clerk Billing Integration
+
+**IMPORTANT**: This application uses **Clerk Billing** for all subscription management, payment processing, and feature access control. Never implement custom payment or subscription logic.
+
+## Overview
+
+Clerk Billing is a managed solution that handles:
+- Subscription plans and pricing
+- Payment processing
+- Feature entitlements
+- Plan upgrades/downgrades
+- Access control based on plans and features
+
+## Available Plans
+
+This app has the following subscription plans configured in Clerk:
+
+1. **`free_user`** - Free tier with limited features
+2. **`pro`** - Professional tier with advanced features
+3. **`unemployed`** - Special tier for job seekers (typically with extended trial or discounts)
+
+## Available Features
+
+Feature flags control access to specific functionality:
+
+1. **`1k_rows`** - Access to store up to 1,000 job application records
+2. **`delete_rows`** - Ability to delete job application records
+3. **`notes`** - Access to create and manage notes on job applications
+
+## Configuration
+
+### Environment Variables
+
+Ensure the following Clerk environment variables are set in `.env.local`:
+
+```bash
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_publishable_key
+CLERK_SECRET_KEY=your_secret_key
+```
+
+Billing is configured in the [Clerk Dashboard](https://dashboard.clerk.com):
+- **Billing Settings**: Enable billing for your application
+- **Subscription Plans**: Configure plans with pricing
+- **Features**: Assign features to plans
+
+## Protecting UI Elements
+
+### Pattern 1: Server Components with `has()` Method
+
+Use this pattern in Server Components to conditionally render content based on plan or feature access:
+
+```tsx
+import { auth } from '@clerk/nextjs/server'
+
+export default async function ApplicationsPage() {
+  const { has, userId } = await auth()
+  
+  if (!userId) {
+    return <div>Please sign in</div>
+  }
+
+  // Check for specific feature access
+  const canDeleteRows = has({ feature: 'delete_rows' })
+  const hasNotesAccess = has({ feature: 'notes' })
+  
+  // Check for specific plan
+  const isProUser = has({ plan: 'pro' })
+  const isUnemployed = has({ plan: 'unemployed' })
+
+  return (
+    <div>
+      {canDeleteRows && <DeleteButton />}
+      {hasNotesAccess && <NotesSection />}
+      {!isProUser && <UpgradePrompt />}
+    </div>
+  )
+}
+```
+
+### Pattern 2: Client Components with `useAuth()` Hook
+
+Use this pattern in Client Components:
+
+```tsx
+"use client"
+
+import { useAuth } from '@clerk/nextjs'
+
+export function DeleteButton() {
+  const { has } = useAuth()
+  const canDelete = has({ feature: 'delete_rows' })
+
+  if (!canDelete) {
+    return <UpgradeToProButton />
+  }
+
+  return <button onClick={handleDelete}>Delete</button>
+}
+```
+
+### Pattern 3: `<Protect />` Component (Recommended for Simple Cases)
+
+Use the `<Protect />` component for declarative access control:
+
+```tsx
+import { Protect } from '@clerk/nextjs'
+
+export function ApplicationsList() {
+  return (
+    <div>
+      {/* Protect based on feature */}
+      <Protect 
+        feature="delete_rows"
+        fallback={
+          <div>
+            <p>Upgrade to Pro to delete applications</p>
+            <UpgradeButton />
+          </div>
+        }
+      >
+        <DeleteButton />
+      </Protect>
+
+      {/* Protect based on plan */}
+      <Protect 
+        plan="pro"
+        fallback={<p>This feature is only available for Pro users</p>}
+      >
+        <AdvancedFeature />
+      </Protect>
+
+      {/* Protect based on multiple conditions */}
+      <Protect 
+        condition={(has) => has({ feature: 'notes' }) && has({ feature: '1k_rows' })}
+        fallback={<p>Upgrade to access notes with expanded storage</p>}
+      >
+        <NotesSection />
+      </Protect>
+    </div>
+  )
+}
+```
+
+## Protecting Routes
+
+### Server-Side Route Protection
+
+Protect entire pages or API routes in Server Components:
+
+```tsx
+// app/pro-features/page.tsx
+import { auth } from '@clerk/nextjs/server'
+import { redirect } from 'next/navigation'
+
+export default async function ProFeaturesPage() {
+  const { has, userId } = await auth()
+  
+  if (!userId) {
+    redirect('/sign-in')
+  }
+
+  if (!has({ plan: 'pro' })) {
+    redirect('/pricing') // Redirect to upgrade page
+  }
+
+  return <div>Pro-only content</div>
+}
+```
+
+### Middleware Protection
+
+Protect routes using Next.js middleware:
+
+```tsx
+// middleware.ts
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server'
+
+const isProtectedRoute = createRouteMatcher(['/pro-features(.*)'])
+
+export default clerkMiddleware(async (auth, req) => {
+  if (isProtectedRoute(req)) {
+    const { has, userId } = await auth()
+    
+    if (!userId) {
+      return NextResponse.redirect(new URL('/sign-in', req.url))
+    }
+
+    if (!has({ plan: 'pro' })) {
+      return NextResponse.redirect(new URL('/pricing', req.url))
+    }
+  }
+})
+
+export const config = {
+  matcher: [
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)',
+  ],
+}
+```
+
+## Server Actions with Access Control
+
+Always check access in Server Actions before performing operations:
+
+```tsx
+"use server"
+
+import { auth } from '@clerk/nextjs/server'
+import { db } from '@/lib/db'
+import { jobApplications } from '@/db/schema'
+import { eq, and } from 'drizzle-orm'
+
+export async function deleteJobApplication(applicationId: string) {
+  const { has, userId } = await auth()
+  
+  if (!userId) {
+    throw new Error("Unauthorized")
+  }
+
+  // CRITICAL: Check feature access before deletion
+  if (!has({ feature: 'delete_rows' })) {
+    throw new Error("Upgrade to Pro to delete applications")
+  }
+
+  // Verify ownership and delete
+  await db
+    .delete(jobApplications)
+    .where(
+      and(
+        eq(jobApplications.id, applicationId),
+        eq(jobApplications.userId, userId)
+      )
+    )
+
+  revalidatePath('/track')
+}
+
+export async function createNote(applicationId: string, content: string) {
+  const { has, userId } = await auth()
+  
+  if (!userId) {
+    throw new Error("Unauthorized")
+  }
+
+  // Check notes feature access
+  if (!has({ feature: 'notes' })) {
+    throw new Error("Upgrade to access notes feature")
+  }
+
+  // Create note...
+}
+
+export async function checkRowLimit() {
+  const { has, userId } = await auth()
+  
+  if (!userId) {
+    throw new Error("Unauthorized")
+  }
+
+  const applications = await db
+    .select()
+    .from(jobApplications)
+    .where(eq(jobApplications.userId, userId))
+
+  const has1kRows = has({ feature: '1k_rows' })
+  const maxRows = has1kRows ? 1000 : 25 // Free tier: 25 rows
+
+  if (applications.length >= maxRows) {
+    throw new Error(`You've reached your limit of ${maxRows} applications. ${!has1kRows ? 'Upgrade to Pro for 1,000 applications.' : ''}`)
+  }
+}
+```
+
+## Displaying Pricing Table
+
+Use Clerk's `<PricingTable />` component to display available plans:
+
+```tsx
+// app/pricing/page.tsx
+import { PricingTable } from '@clerk/nextjs'
+
+export default function PricingPage() {
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold text-center mb-8">
+        Choose Your Plan
+      </h1>
+      
+      {/* Clerk's managed pricing table */}
+      <PricingTable />
+    </div>
+  )
+}
+```
+
+## Upgrade Prompts and CTAs
+
+Create reusable upgrade prompts for feature-gated functionality:
+
+```tsx
+// components/upgrade-prompt.tsx
+"use client"
+
+import { useAuth } from '@clerk/nextjs'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import Link from 'next/link'
+
+interface UpgradePromptProps {
+  feature: string
+  featureName: string
+  description: string
+}
+
+export function UpgradePrompt({ feature, featureName, description }: UpgradePromptProps) {
+  const { has } = useAuth()
+  const hasAccess = has({ feature })
+
+  if (hasAccess) {
+    return null // Don't show if user already has access
+  }
+
+  return (
+    <Card className="border-primary">
+      <CardHeader>
+        <CardTitle>Unlock {featureName}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground mb-4">{description}</p>
+        <Button asChild>
+          <Link href="/pricing">Upgrade to Pro</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Usage
+<UpgradePrompt 
+  feature="notes"
+  featureName="Notes"
+  description="Add notes to your applications to track important details and next steps."
+/>
+```
+
+## Best Practices
+
+### ✅ DO:
+
+1. **Always check access server-side** in Server Actions and API routes (never trust client-side checks alone)
+2. **Use `has()` for multiple checks** when you need to verify several features/plans
+3. **Provide clear upgrade paths** - Always show users how to get access to gated features
+4. **Use declarative protection** with `<Protect />` component for simple UI gating
+5. **Check limits before operations** - Verify row limits before creating new records
+6. **Show graceful fallbacks** - Use the `fallback` prop on `<Protect />` components
+7. **Handle errors gracefully** - Display user-friendly messages when access is denied
+8. **Revalidate after plan changes** - Call `revalidatePath()` after subscription changes
+
+### ❌ DON'T:
+
+1. **Don't rely only on client-side checks** - Always verify on the server
+2. **Don't hard-code limits** - Use `has()` to check dynamically
+3. **Don't create custom payment flows** - Use Clerk's managed billing
+4. **Don't store subscription state in your database** - Clerk manages this
+5. **Don't hide upgrade prompts** - Make it clear how users can unlock features
+6. **Don't use generic error messages** - Be specific about what feature requires an upgrade
+
+## Common Patterns
+
+### Row Limit Enforcement
+
+```tsx
+"use server"
+
+import { auth } from '@clerk/nextjs/server'
+import { db } from '@/lib/db'
+import { jobApplications } from '@/db/schema'
+import { eq, count } from 'drizzle-orm'
+
+export async function createJobApplication(data: NewJobApplication) {
+  const { has, userId } = await auth()
+  
+  if (!userId) {
+    throw new Error("Unauthorized")
+  }
+
+  // Check row count
+  const [{ count: rowCount }] = await db
+    .select({ count: count() })
+    .from(jobApplications)
+    .where(eq(jobApplications.userId, userId))
+
+  const has1kRows = has({ feature: '1k_rows' })
+  const maxRows = has1kRows ? 1000 : 25
+
+  if (rowCount >= maxRows) {
+    throw new Error(
+      `You've reached your limit of ${maxRows} applications. ${
+        !has1kRows ? 'Upgrade to Pro to track up to 1,000 applications.' : ''
+      }`
+    )
+  }
+
+  // Create application...
+}
+```
+
+### Conditional Feature Display
+
+```tsx
+import { auth } from '@clerk/nextjs/server'
+
+export default async function ApplicationCard({ application }) {
+  const { has } = await auth()
+  
+  const canDelete = has({ feature: 'delete_rows' })
+  const hasNotes = has({ feature: 'notes' })
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{application.company}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {/* Always visible */}
+        <ViewButton />
+        
+        {/* Feature-gated */}
+        {canDelete ? (
+          <DeleteButton />
+        ) : (
+          <Button disabled>
+            Delete (Pro only)
+          </Button>
+        )}
+        
+        {hasNotes && <NotesSection />}
+      </CardContent>
+    </Card>
+  )
+}
+```
+
+### Plan-Based UI Variants
+
+```tsx
+"use client"
+
+import { useAuth } from '@clerk/nextjs'
+import { Badge } from '@/components/ui/badge'
+
+export function PlanBadge() {
+  const { has } = useAuth()
+  
+  const isPro = has({ plan: 'pro' })
+  const isUnemployed = has({ plan: 'unemployed' })
+  const isFree = has({ plan: 'free_user' })
+
+  if (isPro) {
+    return <Badge variant="default">Pro</Badge>
+  }
+  
+  if (isUnemployed) {
+    return <Badge variant="secondary">Job Seeker</Badge>
+  }
+  
+  if (isFree) {
+    return <Badge variant="outline">Free</Badge>
+  }
+  
+  return null
+}
+```
+
+## Testing Access Control
+
+When testing feature access:
+
+1. **Test all plans** - Verify behavior for `free_user`, `pro`, and `unemployed` plans
+2. **Test feature combinations** - Check what happens when features are enabled/disabled
+3. **Test limits** - Verify row limits are enforced correctly
+4. **Test upgrade flows** - Ensure users can upgrade and access is immediately granted
+5. **Test error handling** - Verify graceful error messages for denied access
+
+## Security Checklist
+
+Before deploying any feature-gated functionality:
+
+- [ ] Server-side access check using `auth().has()` is in place
+- [ ] Client-side UI reflects access state using `useAuth().has()` or `<Protect />`
+- [ ] Server Actions validate access before performing operations
+- [ ] Row limits are enforced before creating new records
+- [ ] Error messages guide users to upgrade when appropriate
+- [ ] Fallback content is shown for users without access
+- [ ] Upgrade CTAs are clear and actionable
+- [ ] Route protection is in place for plan-specific pages
+
+## Plan-Feature Matrix
+
+| Feature | free_user | pro | unemployed |
+|---------|-----------|-----|------------|
+| Track applications | ✅ (up to 25) | ✅ (up to 1,000) | ✅ (up to 1,000) |
+| Delete applications | ❌ | ✅ | ✅ |
+| Add notes | ❌ | ✅ | ✅ |
+| Export data | ❌ | ✅ | ✅ |
+| Advanced filters | ❌ | ✅ | ✅ |
+
+**Note**: The exact feature assignments should be configured in the [Clerk Dashboard](https://dashboard.clerk.com/~/billing/plans).
+
+## References
+
+- **Clerk Billing Docs**: https://clerk.com/docs/nextjs/guides/billing/for-b2c
+- **Clerk Dashboard**: https://dashboard.clerk.com
+- **Authentication Rules**: [.cursor/rules/clerk-authentication.mdc](mdc:.cursor/rules/clerk-authentication.mdc)
+- **Database Schema**: [db/schema/job-applications.ts](mdc:db/schema/job-applications.ts)

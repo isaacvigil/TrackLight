@@ -38,7 +38,7 @@ Based on [db/schema/job-applications.ts](mdc:db/schema/job-applications.ts), ext
 }
 ```
 
-**Note**: `applicationStatus` is always set to `"wishlist"` by default when creating from URL.
+**Note**: `applicationStatus` is always set to `"applied"` by default when creating from URL, and `appliedDate` is set to the current date. This reflects the typical user workflow: applying to a job first, then pasting the link to track it.
 
 ## Implementation Pattern
 
@@ -202,6 +202,7 @@ export async function createJobApplication(input: CreateJobApplicationInput) {
 
   // Insert into database with AI-extracted data
   // Convert empty strings to null for optional database fields
+  // Default status is "applied" because users paste job links after applying
   const result = await db
     .insert(jobApplications)
     .values({
@@ -212,8 +213,8 @@ export async function createJobApplication(input: CreateJobApplicationInput) {
       salary: extractedData.salary.trim() || null,
       location: extractedData.location.trim() || null,
       remoteStatus: extractedData.remoteStatus.trim() || null,
-      applicationStatus: "wishlist",
-      appliedDate: null,
+      applicationStatus: "applied",
+      appliedDate: new Date(), // Set to current date when adding job
       statusChangeDate: new Date(),
     })
     .returning();
