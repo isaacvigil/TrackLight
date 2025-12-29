@@ -1,23 +1,35 @@
-import { PricingTable } from '@clerk/nextjs'
+import { PricingTable, SignUpButton } from '@clerk/nextjs'
 import { auth } from '@clerk/nextjs/server'
+import { Button } from '@/components/ui/button'
 
 export default async function PricingPage() {
-  await auth() // Ensure user is authenticated
+  const { userId } = await auth()
 
   return (
-    <div className="container mx-auto px-4 py-12 min-h-screen">
-      <div className="max-w-2xl mx-auto">
+    <div className="container mx-auto px-4 flex-1 flex items-start justify-center pt-[15vh]">
+      <div className="max-w-2xl mx-auto w-full">
         {/* Header Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-medium tracking-tight text-foreground">
-            Upgrade to TrackLight Pro
+            Do more with TrackLight Pro
           </h1>
         </div>
 
         {/* Pricing Table */}
-        <div className="mb-12">
+        <div className="mb-12" data-hide-subscribe={!userId}>
           <PricingTable />
         </div>
+
+        {/* Sign Up CTA for non-logged-in users */}
+        {!userId && (
+          <div className="text-center mt-8">
+            <SignUpButton mode="modal">
+              <Button size="lg" className="text-lg rounded-full">
+                Create Account for Free
+              </Button>
+            </SignUpButton>
+          </div>
+        )}
 
         {/* Contact Section */}
         <div className="text-center mt-16 text-lg">

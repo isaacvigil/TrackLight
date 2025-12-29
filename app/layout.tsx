@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} antialiased font-sans`}
+        className={`${inter.variable} antialiased font-sans min-h-screen flex flex-col`}
         style={{ 
           background: 'linear-gradient(135deg, rgba(10, 10, 10, 1) 0%, rgba(0, 24, 41, 1) 100%)',
         }}
@@ -65,8 +65,10 @@ export default function RootLayout({
                 </div>
               </div>
             </Header>
-            {children}
-            <footer className="py-6 mt-auto">
+            <div className="flex-1 flex flex-col">
+              {children}
+            </div>
+            <footer className="py-6">
               <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
                 TrackLight © {new Date().getFullYear()}
               </div>

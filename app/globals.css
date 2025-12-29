@@ -110,3 +110,8 @@ body {
   font-size: 1rem !important; /* 16px */
   border-radius: 9999px !important; /* rounded-full */
 }
+
+/* Hide subscribe buttons when user is not logged in */
+[data-hide-subscribe="true"] .cl-pricingTableCardFooterButton {
+  display: none !important;
+}
