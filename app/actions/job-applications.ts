@@ -402,13 +402,13 @@ export async function createJobApplication(input: CreateJobApplicationInput) {
     .from(jobApplications)
     .where(eq(jobApplications.userId, userId));
 
-  const has1kRows = has({ feature: '1k_rows' });
-  const maxRows = has1kRows ? 1000 : 20;
+  const hasUnlimitedRows = has({ feature: 'unlimited_rows' });
+  const maxRows = hasUnlimitedRows ? 10000 : 20; // 10k effective limit for unlimited plans
 
   if (rowCount >= maxRows) {
     throw new Error(
       `You've reached your limit of ${maxRows} applications. ${
-        !has1kRows ? 'Upgrade to Pro to track up to 1,000 applications.' : ''
+        !hasUnlimitedRows ? 'Upgrade to Pro for unlimited applications.' : ''
       }`
     );
   }

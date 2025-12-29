@@ -31,8 +31,8 @@ export default async function TrackPage() {
   }
 
   // Check plan limits
-  const has1kRows = has({ feature: '1k_rows' });
-  const maxRows = has1kRows ? 1000 : 20;
+  const hasUnlimitedRows = has({ feature: 'unlimited_rows' });
+  const maxRows = hasUnlimitedRows ? 10000 : 20; // 10k effective limit for unlimited plans
   const currentCount = applications.length;
   
   // Check if user is on free plan

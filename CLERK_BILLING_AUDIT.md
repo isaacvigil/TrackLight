@@ -11,11 +11,11 @@ This document provides a comprehensive audit of the TrackLight codebase to ensur
 
 ### Available Plans
 - `free_user` - Free tier (20 applications max)
-- `pro` - Professional tier (1,000 applications max)
-- `unemployed` - Job seeker tier (1,000 applications max)
+- `pro` - Professional tier (unlimited applications)
+- `unemployed` - Job seeker tier (unlimited applications)
 
 ### Available Features
-- `1k_rows` - Store up to 1,000 job applications
+- `unlimited_rows` - Store unlimited job applications (effective limit: 10,000)
 - `notes` - Add notes to applications
 
 **Note:** Delete functionality is available to all users (no longer a Pro-only feature).
@@ -29,17 +29,17 @@ This document provides a comprehensive audit of the TrackLight codebase to ensur
 - **Checks:**
   - ✅ Authenticates user with `auth()`
   - ✅ Validates input with Zod
-  - ✅ Checks row limit with `has({ feature: '1k_rows' })`
+  - ✅ Checks row limit with `has({ feature: 'unlimited_rows' })`
   - ✅ Returns appropriate error message with upgrade prompt
 
 ```typescript
-const has1kRows = has({ feature: '1k_rows' });
-const maxRows = has1kRows ? 1000 : 20;
+const hasUnlimitedRows = has({ feature: 'unlimited_rows' });
+const maxRows = hasUnlimitedRows ? 10000 : 20; // 10k effective limit for unlimited plans
 
 if (rowCount >= maxRows) {
   throw new Error(
     `You've reached your limit of ${maxRows} applications. ${
-      !has1kRows ? 'Upgrade to Pro to track up to 1,000 applications.' : ''
+      !hasUnlimitedRows ? 'Upgrade to Pro for unlimited applications.' : ''
     }`
   );
 }
@@ -106,13 +106,13 @@ if (rowCount >= maxRows) {
   - ✅ Authenticates with `auth()`
   - ✅ Redirects unauthenticated users
   - ✅ Fetches data filtered by userId
-  - ✅ Checks `has({ feature: '1k_rows' })`
+  - ✅ Checks `has({ feature: 'unlimited_rows' })`
   - ✅ Checks `has({ plan: 'free_user' })`
   - ✅ Passes billing info to client component
 
 ```typescript
-const has1kRows = has({ feature: '1k_rows' });
-const maxRows = has1kRows ? 1000 : 20;
+const hasUnlimitedRows = has({ feature: 'unlimited_rows' });
+const maxRows = hasUnlimitedRows ? 10000 : 20; // 10k effective limit for unlimited plans
 const isFreeUser = has({ plan: 'free_user' });
 
 <ApplicationsTracker 
@@ -161,7 +161,7 @@ These components allow editing for all users (no Pro requirement):
 
 | Feature | free_user | pro | unemployed |
 |---------|-----------|-----|------------|
-| Track applications | ✅ (up to 20) | ✅ (up to 1,000) | ✅ (up to 1,000) |
+| Track applications | ✅ (up to 20) | ✅ (unlimited) | ✅ (unlimited) |
 | Edit applications | ✅ | ✅ | ✅ |
 | Delete applications | ✅ | ✅ | ✅ |
 | Add notes | ❌ | ✅ | ✅ |
@@ -200,13 +200,13 @@ To verify billing integration:
 
 1. **Test with free_user plan:**
    - ✅ Can add up to 20 applications
-   - ✅ Cannot delete applications (shows upgrade prompt)
+   - ✅ Can delete applications
    - ✅ Cannot add notes (shows upgrade prompt)
    - ✅ Can edit all fields
    - ✅ Sees "Upgrade to Pro" button
 
 2. **Test with pro plan:**
-   - ✅ Can add up to 1,000 applications
+   - ✅ Can add unlimited applications (up to 10,000 effective limit)
    - ✅ Can delete applications
    - ✅ Can add notes
    - ✅ Can edit all fields

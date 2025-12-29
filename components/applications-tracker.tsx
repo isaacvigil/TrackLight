@@ -6,7 +6,6 @@ import { MoveUp } from "lucide-react";
 import { AddApplicationForm } from "@/components/add-application-form";
 import { SortableApplicationsTable } from "@/components/sortable-applications-table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { JobApplication } from "@/db/schema";
 
@@ -52,7 +51,6 @@ export function ApplicationsTracker({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-2 shrink-0">
               <h2 className="text-2xl font-bold tracking-tight">Job applications tracker</h2>
-              <Badge variant="secondary">Beta</Badge>
             </div>
             <div className="w-full md:flex-1 md:max-w-md">
               <AddApplicationForm 

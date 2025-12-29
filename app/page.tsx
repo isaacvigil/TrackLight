@@ -23,7 +23,7 @@ export default async function Home() {
               Effortless job application tracking
             </h1>
             <h2 className="text-2xl text-muted-foreground">
-            TrackLight extracts the details from job post links, so you can focus on applying
+            TrackLight extracts details from job post links, so you can focus on applying
             </h2>
           </div>
           <SignUpButton mode="modal" forceRedirectUrl="/track">
@@ -35,12 +35,13 @@ export default async function Home() {
 
         <div className="flex justify-center">
           <Image
-            src="/girl-laptop.jpg"
-            alt="Person working on laptop"
-            width={400}
-            height={268}
-            className="rounded-[40px] shadow-lg"
+            src="/girl-laptop.png"
+            alt="Girl working on laptop, seeing that when input a job post link, the details are extracted and displayed"
+            width={504}
+            height={575}
+            className="shadow-lg"
             priority
+            unoptimized
           />
         </div>
 

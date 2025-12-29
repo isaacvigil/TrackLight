@@ -28,7 +28,7 @@ This app has the following subscription plans configured in Clerk:
 
 Feature flags control access to specific functionality:
 
-1. **`1k_rows`** - Access to store up to 1,000 job application records
+1. **`unlimited_rows`** - Access to store unlimited job application records (effective limit: 10,000)
 2. **`notes`** - Access to create and manage notes on job applications
 
 **Note:** Delete functionality is available to all users (no longer a Pro-only feature).
@@ -137,8 +137,8 @@ export function ApplicationsList() {
 
       {/* Protect based on multiple conditions */}
       <Protect 
-        condition={(has) => has({ feature: 'notes' }) && has({ feature: '1k_rows' })}
-        fallback={<p>Upgrade to access notes with expanded storage</p>}
+        condition={(has) => has({ feature: 'notes' }) && has({ feature: 'unlimited_rows' })}
+        fallback={<p>Upgrade to access notes with unlimited storage</p>}
       >
         <NotesSection />
       </Protect>
@@ -265,11 +265,11 @@ export async function checkRowLimit() {
     .from(jobApplications)
     .where(eq(jobApplications.userId, userId))
 
-  const has1kRows = has({ feature: '1k_rows' })
-  const maxRows = has1kRows ? 1000 : 20 // Free tier: 20 rows
+  const hasUnlimitedRows = has({ feature: 'unlimited_rows' })
+  const maxRows = hasUnlimitedRows ? 10000 : 20 // Free tier: 20 rows, Pro: 10k effective limit
 
   if (applications.length >= maxRows) {
-    throw new Error(`You've reached your limit of ${maxRows} applications. ${!has1kRows ? 'Upgrade to Pro for 1,000 applications.' : ''}`)
+    throw new Error(`You've reached your limit of ${maxRows} applications. ${!hasUnlimitedRows ? 'Upgrade to Pro for unlimited applications.' : ''}`)
   }
 }
 ```
@@ -393,13 +393,13 @@ export async function createJobApplication(data: NewJobApplication) {
     .from(jobApplications)
     .where(eq(jobApplications.userId, userId))
 
-  const has1kRows = has({ feature: '1k_rows' })
-  const maxRows = has1kRows ? 1000 : 20
+  const hasUnlimitedRows = has({ feature: 'unlimited_rows' })
+  const maxRows = hasUnlimitedRows ? 10000 : 20 // Free tier: 20 rows, Pro: 10k effective limit
 
   if (rowCount >= maxRows) {
     throw new Error(
       `You've reached your limit of ${maxRows} applications. ${
-        !has1kRows ? 'Upgrade to Pro to track up to 1,000 applications.' : ''
+        !hasUnlimitedRows ? 'Upgrade to Pro for unlimited applications.' : ''
       }`
     )
   }
@@ -494,7 +494,7 @@ Before deploying any feature-gated functionality:
 
 | Feature | free_user | pro | unemployed |
 |---------|-----------|-----|------------|
-| Track applications | ✅ (up to 20) | ✅ (up to 1,000) | ✅ (up to 1,000) |
+| Track applications | ✅ (up to 20) | ✅ (unlimited) | ✅ (unlimited) |
 | Delete applications | ✅ | ✅ | ✅ |
 | Add notes | ❌ | ✅ | ✅ |
 | Export data | ❌ | ✅ | ✅ |
