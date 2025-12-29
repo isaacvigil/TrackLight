@@ -13,8 +13,7 @@ export default async function Home() {
   }
   return (
     <div 
-      className="flex min-h-screen items-center justify-center bg-background p-8 bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: 'url(/bg.jpg)' }}
+      className="flex min-h-screen items-center justify-center p-8"
     >
       <main className="w-full max-w-4xl space-y-16">
         <div className="space-y-8 text-center">

@@ -32,6 +32,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${inter.variable} antialiased font-sans`}
+        style={{ 
+          background: 'linear-gradient(135deg, rgba(10, 10, 10, 1) 0%, rgba(0, 24, 41, 1) 100%)',
+        }}
       >
         <ThemeProvider
           attribute="class"
@@ -41,7 +44,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ThemedClerkProvider>
-            <Header variant="glass">
+            <Header variant="transparent">
               <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <Logo />
                 <div className="flex items-center gap-2">

@@ -84,3 +84,4 @@ OPENAI_API_KEY=sk-proj-1234567890abcdefghijklmnopqrstuvwxyz
 - Verify your Neon database is active (not hibernated)
 - Test connection with `npm run db:studio`
 
+

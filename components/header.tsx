@@ -10,6 +10,7 @@ const headerVariants = cva(
       variant: {
         default: "bg-background border-b",
         glass: "bg-card/50 backdrop-blur-md",
+        transparent: "",
       },
     },
     defaultVariants: {
