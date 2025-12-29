@@ -29,6 +29,7 @@ function linkifyText(text: string) {
           target="_blank"
           rel="noopener noreferrer"
           className="text-primary underline hover:text-primary/80 break-all"
+          onClick={(e) => e.stopPropagation()}
         >
           {part}
         </a>
@@ -156,13 +157,24 @@ export function NotesDialog({ applicationId, role, companyName, initialNotes }: 
             </>
           ) : (
             <>
-              <div className="min-h-[400px] max-h-[600px] overflow-y-auto rounded-md border border-input bg-muted/30 px-4 py-3">
+              <div 
+                className="min-h-[400px] max-h-[600px] overflow-y-auto rounded-md border border-input bg-muted/30 px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => setIsEditing(true)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setIsEditing(true);
+                  }
+                }}
+              >
                 {notes ? (
                   <p className="whitespace-pre-wrap text-base leading-relaxed">
                     {linkifyText(notes)}
                   </p>
                 ) : (
-                  <p className="text-muted-foreground italic">No notes added yet.</p>
+                  <p className="text-muted-foreground italic">No notes added yet. Click to add notes.</p>
                 )}
               </div>
 

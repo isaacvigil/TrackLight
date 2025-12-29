@@ -36,14 +36,12 @@ export default async function TrackPage() {
   const currentCount = applications.length;
 
   return (
-    <div className="min-h-screen bg-background p-2 md:p-8 rounded-3xl">
-      <main className="max-w-5xl mx-auto space-y-8 px-4">
-        <ApplicationsTracker 
-          applications={applications}
-          maxRows={maxRows}
-          currentCount={currentCount}
-        />
-      </main>
+    <div className="min-h-screen bg-background py-8">
+      <ApplicationsTracker 
+        applications={applications}
+        maxRows={maxRows}
+        currentCount={currentCount}
+      />
     </div>
   );
 }

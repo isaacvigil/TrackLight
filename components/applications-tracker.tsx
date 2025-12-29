@@ -39,29 +39,37 @@ export function ApplicationsTracker({
   }, [applications, searchQuery]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h2 className="text-2xl font-bold tracking-tight shrink-0">Job applications tracker</h2>
-        <div className="flex-1 max-w-md">
-          <AddApplicationForm 
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-          />
+    <div className="space-y-8">
+      <div className="container mx-auto px-4">
+        <div className="space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h2 className="text-2xl font-bold tracking-tight shrink-0">Job applications tracker</h2>
+            <div className="flex-1 max-w-md">
+              <AddApplicationForm 
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+              />
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <span className={currentCount >= maxRows ? "text-destructive font-medium" : currentCount >= maxRows * 0.8 ? "text-yellow-600 dark:text-yellow-500 font-medium" : "text-muted-foreground"}>
+              {currentCount} / {maxRows} tracked
+            </span>
+            {searchQuery && (
+              <span className="text-sm text-muted-foreground">
+                Showing {filteredApplications.length} of {applications.length} applications
+              </span>
+            )}
+          </div>
         </div>
       </div>
-      
-      <div className="flex items-center justify-between">
-        <span className={currentCount >= maxRows ? "text-destructive font-medium" : currentCount >= maxRows * 0.8 ? "text-yellow-600 dark:text-yellow-500 font-medium" : "text-muted-foreground"}>
-          {currentCount} / {maxRows} tracked
-        </span>
-        {searchQuery && (
-          <span className="text-sm text-muted-foreground">
-            Showing {filteredApplications.length} of {applications.length} applications
-          </span>
-        )}
-      </div>
 
-      <SortableApplicationsTable applications={filteredApplications} />
+      <div className="w-full overflow-x-auto">
+        <div className="container mx-auto px-4">
+          <SortableApplicationsTable applications={filteredApplications} />
+        </div>
+      </div>
     </div>
   );
 }
