@@ -3,6 +3,7 @@ import { SignUpButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { PreviewApplicationsTable } from "@/components/preview-applications-table";
+import Image from "next/image";
 
 export default async function Home() {
   // Redirect authenticated users to the track page
@@ -30,6 +31,17 @@ export default async function Home() {
               Create Account for Free
             </Button>
           </SignUpButton>
+        </div>
+
+        <div className="flex justify-center">
+          <Image
+            src="/girl-laptop.jpg"
+            alt="Person working on laptop"
+            width={400}
+            height={268}
+            className="rounded-lg shadow-lg"
+            priority
+          />
         </div>
 
         {/* <PreviewApplicationsTable /> */}

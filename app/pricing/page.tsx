@@ -9,7 +9,7 @@ export default async function PricingPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header Section */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold tracking-tight mb-4">
+          <h1 className="text-4xl font-medium tracking-tight text-foreground">
             Upgrade to TrackLight Pro
           </h1>
         </div>
