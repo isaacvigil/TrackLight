@@ -49,16 +49,16 @@ const statusLabels: Record<string, string> = {
 export function PreviewApplicationsTable() {
   return (
     <Card>
-      <div className="w-full overflow-x-auto pt-2 pb-4 px-2">
+      <div className="w-full overflow-x-auto pt-4 pb-4 px-4">
         <Table>
           <TableHeader className="mb-2">
             <TableRow>
-              <TableHead className="w-[180px]">Company</TableHead>
-              <TableHead className="w-[200px]">Role</TableHead>
-              <TableHead className="w-[150px]">Location</TableHead>
-              <TableHead className="w-[110px]">Remote</TableHead>
-              <TableHead className="w-[130px]">Salary</TableHead>
-              <TableHead className="w-[140px]">Status</TableHead>
+              <TableHead className="w-[180px] text-muted-foreground">Company</TableHead>
+              <TableHead className="w-[200px] text-muted-foreground">Role</TableHead>
+              <TableHead className="w-[150px] text-muted-foreground">Location</TableHead>
+              <TableHead className="w-[110px] text-muted-foreground">Remote</TableHead>
+              <TableHead className="w-[130px] text-muted-foreground">Salary</TableHead>
+              <TableHead className="w-[140px] text-muted-foreground">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

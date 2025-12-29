@@ -23,7 +23,7 @@ export default async function Home() {
               Effortless job application tracking
             </h1>
             <h2 className="text-2xl text-muted-foreground">
-            TrackLight extracts the job details for you from job post links
+            Extract job details from a job post link
             </h2>
           </div>
           <SignUpButton mode="modal" forceRedirectUrl="/track">
@@ -33,7 +33,7 @@ export default async function Home() {
           </SignUpButton>
         </div>
 
-        <PreviewApplicationsTable />
+        {/* <PreviewApplicationsTable /> */}
       </main>
     </div>
   );
