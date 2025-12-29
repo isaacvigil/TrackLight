@@ -33,7 +33,7 @@ Based on [db/schema/job-applications.ts](mdc:db/schema/job-applications.ts), ext
   company: string,      // Company name (required)
   role: string,         // Job title/role (required)
   salary: string,       // Salary info (optional, e.g., "$80k-$100k", "€70,000")
-  location: string,     // Physical location only (optional, e.g., "San Francisco", "Barcelona")
+  location: string,     // Physical location(s) (optional, e.g., "San Francisco", "UK, Spain, Germany", or "Multiple" if >3)
   remoteStatus: string, // Remote arrangement (optional, e.g., "Remote", "Hybrid", "In-office")
 }
 ```
@@ -69,7 +69,7 @@ const jobDataSchema = z.object({
   company: z.string().describe("The company name"),
   role: z.string().describe("The job title or role"),
   salary: z.string().describe("Salary information if available, or empty string if not found"),
-  location: z.string().describe("The physical city/location name only, or empty string if not found"),
+  location: z.string().describe("Location(s): single city, 2-3 cities comma-separated, or 'Multiple' if >3 locations, or empty string if not found"),
   remoteStatus: z.string().describe("Remote work arrangement: 'Remote', 'Hybrid', 'In-office', or empty string if not specified"),
 });
 
@@ -155,8 +155,11 @@ async function extractJobDataFromUrl(url: string): Promise<ExtractedJobData> {
          - Preserve original format like "$80k-$100k", "€70,000/year", "£50-60k"
          - If not found, return empty string
       
-      4. Location (IMPORTANT - ONLY the physical location):
-         - Extract ONLY the city/place name, without remote status
+      4. Location (IMPORTANT - Handle single or multiple locations):
+         - Extract location(s) based on how many are listed:
+           * If 1 location: Extract the exact city/place name (e.g., "San Francisco", "Barcelona")
+           * If 2-3 locations: List them comma-separated (e.g., "UK, Spain, Germany")
+           * If more than 3 locations: Return "Multiple"
          - Examples: "San Francisco", "Sant Cugat del Vallès", "Barcelona", "London"
          - Look for location indicators like "Locations:", "Based in:", country codes (ESP, USA, UK)
          - If format is "COUNTRY_CODE | City Name" (e.g., "ESP | Sant Cugat del Vallès"), extract just the city name
@@ -337,8 +340,11 @@ Analyze the job posting carefully and extract:
    - Preserve original format like "$80k-$100k", "€70,000/year", "£50-60k"
    - If not found, return empty string
 
-4. Location (IMPORTANT - ONLY the physical location):
-   - Extract ONLY the city/place name, without remote status
+4. Location (IMPORTANT - Handle single or multiple locations):
+   - Extract location(s) based on how many are listed:
+     * If 1 location: Extract the exact city/place name (e.g., "San Francisco", "Barcelona")
+     * If 2-3 locations: List them comma-separated (e.g., "UK, Spain, Germany")
+     * If more than 3 locations: Return "Multiple"
    - Examples: "San Francisco", "Sant Cugat del Vallès", "Barcelona", "London"
    - Look for location indicators like "Locations:", "Based in:", country codes (ESP, USA, UK)
    - If format is "COUNTRY_CODE | City Name" (e.g., "ESP | Sant Cugat del Vallès"), extract just the city name
@@ -431,6 +437,36 @@ export function AddApplicationForm() {
 8. **Revalidate paths** - Call `revalidatePath()` after database mutations
 9. **Security** - Never expose OpenAI API key to client side
 
+## Limitations and Known Issues
+
+### JavaScript-Rendered Pages
+
+**IMPORTANT**: The current implementation uses simple HTML scraping, which has limitations:
+
+#### ❌ Pages That May Fail to Extract:
+- **Single Page Applications (SPAs)**: Sites built with React, Vue, Angular that render content client-side
+- **Examples**: Deel careers, Greenhouse job boards, some Lever instances, Workable
+- **Symptom**: Extraction returns generic text like "Join Our Team" or "[Update required]"
+- **Why**: The server-side fetch only receives the initial HTML shell, not the JavaScript-rendered content
+
+#### ✅ Pages That Work Well:
+- **Static HTML pages**: Traditional server-rendered job boards
+- **Examples**: LinkedIn Jobs, Indeed, some company career pages
+- **Why**: Content is present in the initial HTML response
+
+#### Fallback Behavior:
+When content cannot be fetched properly, the system will:
+1. Detect insufficient content (< 200 characters)
+2. Log warnings to the server console
+3. Return placeholder values: `[Update required]`
+4. Allow users to manually edit the fields
+
+#### Future Improvements:
+To support JavaScript-rendered pages, consider:
+- Using a headless browser service (Puppeteer, Playwright, Browserless)
+- Integrating with specialized scraping APIs (ScrapingBee, Apify)
+- Adding manual entry as the primary flow with AI extraction as optional enhancement
+
 ## Common Pitfalls to Avoid
 
 ❌ **Don't** call AI from Client Components
@@ -440,6 +476,7 @@ export function AddApplicationForm() {
 ❌ **Don't** skip validation of AI output (always use Zod schemas)
 ❌ **Don't** forget to set loading states in UI during AI processing
 ❌ **Don't** use `.optional()` in Zod schemas for OpenAI structured output (use empty strings instead)
+❌ **Don't** expect extraction to work on all job boards (JavaScript-rendered sites will fail)
 
 ## Testing AI Extraction
 
@@ -453,7 +490,7 @@ Verify:
 - ✅ Company name is correctly extracted
 - ✅ Job title is accurate
 - ✅ Salary format is preserved (e.g., "$80k-$100k", "€70,000")
-- ✅ Location contains only city/place name (e.g., "Sant Cugat del Vallès", "San Francisco")
+- ✅ Location contains city/place name(s) (e.g., "San Francisco", "UK, Spain, Germany", or "Multiple" for >3)
 - ✅ Remote status is separate (e.g., "Remote", "Hybrid", "In-office")
 - ✅ Fallback works if URL is inaccessible
 

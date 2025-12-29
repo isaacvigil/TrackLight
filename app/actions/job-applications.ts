@@ -67,7 +67,12 @@ async function fetchPageContent(url: string): Promise<string> {
   try {
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; JobTrackerBot/1.0)',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
       },
     });
     
@@ -85,8 +90,12 @@ async function fetchPageContent(url: string): Promise<string> {
       .replace(/\s+/g, ' ')
       .trim();
     
-    // Limit to first 8000 characters to avoid token limits
-    return cleanedHtml.substring(0, 8000);
+    // Log content length for debugging
+    console.log(`Fetched content length: ${cleanedHtml.length} chars for URL: ${url}`);
+    
+    // Even if content is short, return it - let AI decide if it's useful
+    // Limit to first 12000 characters to provide more context
+    return cleanedHtml.substring(0, 12000);
   } catch (error) {
     console.error("Failed to fetch page content:", error);
     return "";
@@ -104,13 +113,15 @@ async function extractJobDataFromUrl(url: string): Promise<ExtractedJobData> {
     if (!pageContent) {
       console.warn("Could not fetch page content, using fallback");
       return {
-        company: "Company name (update required)",
-        role: "Role (update required)",
+        company: "[Update required]",
+        role: "[Update required]",
         salary: "",
         location: "",
         remoteStatus: "",
       };
     }
+    
+    console.log(`Extracting job data from ${pageContent.length} chars of content...`);
     
     const { output } = await generateText({
       model: openai("gpt-4o"), // Use gpt-4o for better accuracy
@@ -119,66 +130,52 @@ async function extractJobDataFromUrl(url: string): Promise<ExtractedJobData> {
           jobData: jobDataSchema,
         }),
       }),
-      prompt: `Extract job application information from this job posting page.
+      prompt: `Extract job application information from this job posting page content.
       
       URL: ${url}
       
       PAGE CONTENT:
       ${pageContent}
       
-      Analyze the job posting carefully and extract:
+      Extract the following information:
       
-      1. Company name (required) - Look for the employer/company name
+      1. Company name - The employer/company name
       
-      2. Job title/role (required) - The position being advertised
+      2. Job title/role - The position title (e.g., "Senior Software Engineer", "Product Manager")
+         - DO NOT use generic site navigation text like "Join Our Team" or "Careers"
       
-      3. Salary information (if available):
-         - Preserve original format like "$80k-$100k", "€70,000/year", "£50-60k"
-         - If not found, return empty string
+      3. Salary - Preserve exact format if found (e.g., "$80k-$100k", "€70,000")
+         - Return empty string if not found
       
-      4. Location (CRITICAL - Extract the EXACT city name from the page):
-         - Extract ONLY the exact city/place name as written on the page
-         - DO NOT make up or guess city names - use the exact text from the page
-         - Look for location information in these places:
-           * Page header/title (e.g., "Digital · ESP | Sant Cugat del Vallès · Hybrid")
-           * "Locations:" or "Location:" labels
-           * Near company name or job title
-         - Common formats:
-           * "COUNTRY_CODE | City Name" → extract ONLY "City Name" (e.g., "ESP | Sant Cugat del Vallès" → "Sant Cugat del Vallès")
-           * "City, State/Country" → keep as-is (e.g., "San Francisco, CA")
-           * Just city name → keep as-is (e.g., "Barcelona")
-         - DO NOT include "Remote", "Hybrid", "In-office" in this field
-         - DO NOT confuse with company headquarters if job location is different
-         - If location is not found, return empty string
+      4. Location - The job location(s):
+         - If 1 location: return the city name (e.g., "San Francisco", "Barcelona")
+         - If 2-3 locations: return comma-separated (e.g., "London, Paris, Berlin")
+         - If more than 3 locations: return "Multiple"
+         - Extract only city/place names, not country codes
+         - Examples: "ESP | Barcelona" → "Barcelona", "UK, Spain, Germany" → "UK, Spain, Germany"
+         - Do NOT include work arrangement (Remote/Hybrid) in this field
+         - Return empty string if not found
       
-      5. Remote Status (IMPORTANT - separate from location):
-         - Extract the work arrangement: "Remote", "Hybrid", "In-office"
-         - Look for these indicators:
-           * "Remote status: Hybrid" or "Remote status: Remote"
-           * In breadcrumb format like "City · Hybrid" or "Location · Remote"
-           * Labels like "Remote", "Hybrid", "On-site", "In-office", "Office-based"
-           * Near location information but separate from it
-         - Common values: "Remote", "Hybrid", "In-office", "On-site"
-         - If not specified anywhere, return empty string
+      5. Remote Status - Work arrangement only:
+         - Look for: "Remote", "Hybrid", "In-office", "On-site"
+         - Return empty string if not specified
       
-      IMPORTANT: 
-      - The page content above contains the actual text from the job posting
-      - Keep location and remote status completely separate
-      - Extract the EXACT text as it appears in the content - do not paraphrase or guess
-      - Look for location in breadcrumbs, headers, and job details sections
-      - For formats like "ESP | Sant Cugat del Vallès", extract only "Sant Cugat del Vallès"
-      - Common mistake: confusing company HQ with job location - use the job location only
-      
-      For fields that cannot be determined from the content, return an empty string.`,
+      Rules:
+      - Use EXACT text from the page content
+      - Keep location and remote status separate
+      - Don't make up or guess information
+      - Return empty string for missing optional fields`,
     });
+    
+    console.log(`Extracted data:`, output.jobData);
 
     return output.jobData;
   } catch (error) {
     console.error("AI extraction failed:", error);
     // Fallback to placeholder data if AI fails
     return {
-      company: "Company name (update required)",
-      role: "Role (update required)",
+      company: "[Update required]",
+      role: "[Update required]",
       salary: "",
       location: "",
       remoteStatus: "",
@@ -204,7 +201,7 @@ export async function createJobApplication(input: CreateJobApplicationInput) {
     .where(eq(jobApplications.userId, userId));
 
   const has1kRows = has({ feature: '1k_rows' });
-  const maxRows = has1kRows ? 1000 : 25;
+  const maxRows = has1kRows ? 1000 : 20;
 
   if (rowCount >= maxRows) {
     throw new Error(

@@ -201,6 +201,12 @@ export function SortableApplicationsTable({ applications }: SortableApplications
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-1">
+                  <NotesDialog 
+                    applicationId={app.id}
+                    role={app.role}
+                    companyName={app.company}
+                    initialNotes={app.notes}
+                  />
                   {app.jobUrl ? (
                     <Button
                       variant="ghost"
@@ -219,12 +225,6 @@ export function SortableApplicationsTable({ applications }: SortableApplications
                   ) : (
                     <div className="h-10 w-10" />
                   )}
-                  <NotesDialog 
-                    applicationId={app.id}
-                    role={app.role}
-                    companyName={app.company}
-                    initialNotes={app.notes}
-                  />
                   <DeleteApplicationButton applicationId={app.id} />
                 </div>
               </TableCell>

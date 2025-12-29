@@ -32,7 +32,7 @@ export default async function TrackPage() {
 
   // Check plan limits
   const has1kRows = has({ feature: '1k_rows' });
-  const maxRows = has1kRows ? 1000 : 25;
+  const maxRows = has1kRows ? 1000 : 20;
   const currentCount = applications.length;
 
   return (

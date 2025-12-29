@@ -62,14 +62,11 @@ export function NotesDialog({ applicationId, role, companyName, initialNotes }: 
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Notes - Pro Feature</DialogTitle>
-            <DialogDescription>
-              Upgrade to Pro to add notes to your job applications.
-            </DialogDescription>
+            <DialogTitle>Notes · Pro Feature</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <p className="text-sm text-muted-foreground mb-4">
-              Track important details, follow-up tasks, and interview notes for each application.
+            <p className="text-base text-muted-foreground mb-4">
+             Add important details, follow-up tasks, and interview notes for each application.
             </p>
             <Button asChild className="w-full">
               <a href="/pricing">Upgrade to Pro</a>

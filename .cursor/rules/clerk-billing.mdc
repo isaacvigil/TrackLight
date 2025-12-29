@@ -270,7 +270,7 @@ export async function checkRowLimit() {
     .where(eq(jobApplications.userId, userId))
 
   const has1kRows = has({ feature: '1k_rows' })
-  const maxRows = has1kRows ? 1000 : 25 // Free tier: 25 rows
+  const maxRows = has1kRows ? 1000 : 20 // Free tier: 20 rows
 
   if (applications.length >= maxRows) {
     throw new Error(`You've reached your limit of ${maxRows} applications. ${!has1kRows ? 'Upgrade to Pro for 1,000 applications.' : ''}`)
@@ -398,7 +398,7 @@ export async function createJobApplication(data: NewJobApplication) {
     .where(eq(jobApplications.userId, userId))
 
   const has1kRows = has({ feature: '1k_rows' })
-  const maxRows = has1kRows ? 1000 : 25
+  const maxRows = has1kRows ? 1000 : 20
 
   if (rowCount >= maxRows) {
     throw new Error(
@@ -506,7 +506,7 @@ Before deploying any feature-gated functionality:
 
 | Feature | free_user | pro | unemployed |
 |---------|-----------|-----|------------|
-| Track applications | ✅ (up to 25) | ✅ (up to 1,000) | ✅ (up to 1,000) |
+| Track applications | ✅ (up to 20) | ✅ (up to 1,000) | ✅ (up to 1,000) |
 | Delete applications | ❌ | ✅ | ✅ |
 | Add notes | ❌ | ✅ | ✅ |
 | Export data | ❌ | ✅ | ✅ |

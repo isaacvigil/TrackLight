@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createJobApplication } from "@/app/actions/job-applications";
 import Link from "next/link";
-import { AlertCircle, Search, X } from "lucide-react";
+import { AlertCircle, Search, X, Info } from "lucide-react";
 
 interface AddApplicationFormProps {
   searchQuery: string;
@@ -15,6 +15,7 @@ interface AddApplicationFormProps {
 export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
   const [isSearchMode, setIsSearchMode] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -23,6 +24,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
+    setWarning(null);
 
     const formData = new FormData(e.currentTarget);
     
@@ -31,7 +33,14 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
     };
 
     try {
-      await createJobApplication(input);
+      const result = await createJobApplication(input);
+      
+      // Check if extraction failed (placeholder values were used)
+      // Only show warning if BOTH company and role couldn't be extracted
+      if (result.company?.includes("[Update required]") && result.role?.includes("[Update required]")) {
+        setWarning("Could not extract job details from this page. Please update the company and role by clicking on them in the table.");
+      }
+      
       // Reset form on success using ref
       formRef.current?.reset();
     } catch (err) {
@@ -129,6 +138,16 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                   View pricing plans →
                 </Link>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {warning && (
+        <div className="rounded-md bg-amber-500/10 border border-amber-500/20 p-3 text-sm">
+          <div className="flex items-start gap-2">
+            <Info className="size-4 text-amber-600 dark:text-amber-500 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-amber-900 dark:text-amber-200 font-medium">{warning}</p>
             </div>
           </div>
         </div>

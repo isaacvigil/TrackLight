@@ -1,8 +1,11 @@
 "use client"
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
+import { MoveUp } from "lucide-react";
 import { AddApplicationForm } from "@/components/add-application-form";
 import { SortableApplicationsTable } from "@/components/sortable-applications-table";
+import { Button } from "@/components/ui/button";
 import type { JobApplication } from "@/db/schema";
 
 interface ApplicationsTrackerProps {
@@ -53,9 +56,14 @@ export function ApplicationsTracker({
           </div>
           
           <div className="flex items-center justify-between">
-            <span className={currentCount >= maxRows ? "text-destructive font-medium" : currentCount >= maxRows * 0.8 ? "text-yellow-600 dark:text-yellow-500 font-medium" : "text-muted-foreground"}>
-              {currentCount} / {maxRows} tracked
-            </span>
+            <div className="flex items-center gap-3">
+              <span className={currentCount >= maxRows ? "text-destructive font-medium" : currentCount >= maxRows * 0.8 ? "text-yellow-600 dark:text-yellow-500 font-medium" : "text-muted-foreground"}>
+                {currentCount} / {maxRows} tracked
+              </span>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/pricing">Upgrade to Pro</Link>
+              </Button>
+            </div>
             {searchQuery && (
               <span className="text-sm text-muted-foreground">
                 Showing {filteredApplications.length} of {applications.length} applications
@@ -68,9 +76,12 @@ export function ApplicationsTracker({
       <div className="w-full overflow-x-auto">
         <div className="container mx-auto px-4">
           {applications.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground text-lg">
+            <div className="text-center py-12 text-muted-foreground text-base">
               <p>No applications tracked yet</p>
-              <p>Paste the job post link into the field on the top right and start tracking</p>
+              <p className="flex items-center justify-center gap-1">
+                <span>Paste the job post link in the field on the top right</span>
+                <MoveUp className="size-4" />
+              </p>
             </div>
           ) : (
             <SortableApplicationsTable applications={filteredApplications} />
