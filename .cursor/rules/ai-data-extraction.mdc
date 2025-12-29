@@ -33,7 +33,7 @@ Based on [db/schema/job-applications.ts](mdc:db/schema/job-applications.ts), ext
   company: string,      // Company name (required)
   role: string,         // Job title/role (required)
   salary: string,       // Salary info (optional, e.g., "$80k-$100k", "€70,000")
-  location: string,     // Physical location(s) (optional, e.g., "San Francisco", "UK, Spain, Germany", or "Multiple" if >3)
+  location: string,     // Physical location(s) (optional, e.g., "San Francisco", "UK / Spain / Germany", or "Multiple" if >3)
   remoteStatus: string, // Remote arrangement (optional, e.g., "Remote", "Hybrid", "In-office")
 }
 ```
@@ -69,7 +69,7 @@ const jobDataSchema = z.object({
   company: z.string().describe("The company name"),
   role: z.string().describe("The job title or role"),
   salary: z.string().describe("Salary information if available, or empty string if not found"),
-  location: z.string().describe("Location(s): single city, 2-3 cities comma-separated, or 'Multiple' if >3 locations, or empty string if not found"),
+  location: z.string().describe("Location(s): single city, 2-3 cities separated by ' / ', or 'Multiple' if >3 locations, or empty string if not found"),
   remoteStatus: z.string().describe("Remote work arrangement: 'Remote', 'Hybrid', 'In-office', or empty string if not specified"),
 });
 
@@ -158,7 +158,7 @@ async function extractJobDataFromUrl(url: string): Promise<ExtractedJobData> {
       4. Location (IMPORTANT - Handle single or multiple locations):
          - Extract location(s) based on how many are listed:
            * If 1 location: Extract the exact city/place name (e.g., "San Francisco", "Barcelona")
-           * If 2-3 locations: List them comma-separated (e.g., "UK, Spain, Germany")
+           * If 2-3 locations: List them separated by " / " (e.g., "UK / Spain / Germany")
            * If more than 3 locations: Return "Multiple"
          - Examples: "San Francisco", "Sant Cugat del Vallès", "Barcelona", "London"
          - Look for location indicators like "Locations:", "Based in:", country codes (ESP, USA, UK)
@@ -343,7 +343,7 @@ Analyze the job posting carefully and extract:
 4. Location (IMPORTANT - Handle single or multiple locations):
    - Extract location(s) based on how many are listed:
      * If 1 location: Extract the exact city/place name (e.g., "San Francisco", "Barcelona")
-     * If 2-3 locations: List them comma-separated (e.g., "UK, Spain, Germany")
+     * If 2-3 locations: List them separated by " / " (e.g., "UK / Spain / Germany")
      * If more than 3 locations: Return "Multiple"
    - Examples: "San Francisco", "Sant Cugat del Vallès", "Barcelona", "London"
    - Look for location indicators like "Locations:", "Based in:", country codes (ESP, USA, UK)
@@ -444,22 +444,31 @@ export function AddApplicationForm() {
 **IMPORTANT**: The current implementation uses simple HTML scraping, which has limitations:
 
 #### ❌ Pages That May Fail to Extract:
-- **Single Page Applications (SPAs)**: Sites built with React, Vue, Angular that render content client-side
-- **Examples**: Deel careers, Greenhouse job boards, some Lever instances, Workable
-- **Symptom**: Extraction returns generic text like "Join Our Team" or "[Update required]"
-- **Why**: The server-side fetch only receives the initial HTML shell, not the JavaScript-rendered content
+
+1. **Single Page Applications (SPAs)**: Sites built with React, Vue, Angular that render content client-side
+   - **Examples**: Deel careers, Greenhouse job boards, some Lever instances, Workable
+   - **Symptom**: Extraction returns "(Unable to extract, input manually)"
+   - **Why**: The server-side fetch only receives the initial HTML shell, not the JavaScript-rendered content
+
+2. **Authentication-Required Pages**: Sites that require login to view job details
+   - **Examples**: LinkedIn Jobs (requires sign-in), some internal company portals
+   - **Symptom**: Extraction returns "(Unable to extract, input manually)" or empty location/salary
+   - **Why**: The fetch gets redirected to a login page instead of the actual job content
+   - **Detection**: System automatically detects login pages and returns placeholders
 
 #### ✅ Pages That Work Well:
 - **Static HTML pages**: Traditional server-rendered job boards
-- **Examples**: LinkedIn Jobs, Indeed, some company career pages
-- **Why**: Content is present in the initial HTML response
+- **Examples**: Indeed, some company career pages, job aggregator sites
+- **Why**: Content is present in the initial HTML response without authentication
 
 #### Fallback Behavior:
 When content cannot be fetched properly, the system will:
-1. Detect insufficient content (< 200 characters)
-2. Log warnings to the server console
-3. Return placeholder values: `[Update required]`
-4. Allow users to manually edit the fields
+1. Detect login/sign-in pages (pages with "sign in", "log in", "forgot password" text)
+2. Detect insufficient content (< 2000 characters with multiple login indicators)
+3. Log warnings to the server console
+4. Return placeholder values: `(Unable to extract, input manually)` for company/role
+5. Return empty strings for optional fields (salary, location, remoteStatus)
+6. Allow users to manually edit all fields by clicking on them in the table
 
 #### Future Improvements:
 To support JavaScript-rendered pages, consider:
@@ -476,23 +485,26 @@ To support JavaScript-rendered pages, consider:
 ❌ **Don't** skip validation of AI output (always use Zod schemas)
 ❌ **Don't** forget to set loading states in UI during AI processing
 ❌ **Don't** use `.optional()` in Zod schemas for OpenAI structured output (use empty strings instead)
-❌ **Don't** expect extraction to work on all job boards (JavaScript-rendered sites will fail)
+❌ **Don't** expect extraction to work on all job boards (JavaScript-rendered sites and auth-required sites will fail)
+❌ **Don't** assume location data is accurate if the AI extracted it from an auth-required page
 
 ## Testing AI Extraction
 
 Test with various job post URLs:
-- LinkedIn jobs
-- Indeed listings  
-- Company career pages
-- Remote job boards (e.g., Remote.co, We Work Remotely)
+- **Indeed listings** (usually work well)
+- **Company career pages** (work if server-rendered)
+- **Remote job boards** (e.g., Remote.co, We Work Remotely)
+- **LinkedIn jobs** ⚠️ May fail due to authentication requirement - expect placeholders
 
 Verify:
-- ✅ Company name is correctly extracted
-- ✅ Job title is accurate
-- ✅ Salary format is preserved (e.g., "$80k-$100k", "€70,000")
-- ✅ Location contains city/place name(s) (e.g., "San Francisco", "UK, Spain, Germany", or "Multiple" for >3)
-- ✅ Remote status is separate (e.g., "Remote", "Hybrid", "In-office")
-- ✅ Fallback works if URL is inaccessible
+- ✅ Company name is correctly extracted (or placeholder if auth-required)
+- ✅ Job title is accurate (or placeholder if auth-required)
+- ✅ Salary format is preserved (e.g., "$80k-$100k", "€70,000") or empty string
+- ✅ Location contains city/place name(s) (e.g., "San Francisco", "UK / Spain / Germany", or "Multiple" for >3) or empty string
+- ✅ Remote status is separate (e.g., "Remote", "Hybrid", "In-office") or empty string
+- ✅ Fallback works if URL is inaccessible or login-required
+- ✅ Login pages are detected and return placeholders
+- ✅ Optional fields (location, salary, remoteStatus) are empty string when not found, NOT hallucinated
 
 ## Cost Considerations
 

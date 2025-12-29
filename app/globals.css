@@ -39,7 +39,7 @@ html.dark,
   --muted-foreground: 0 0% 64%;
   --accent: 0 0% 15%;
   --accent-foreground: 0 0% 98%;
-  --destructive: 0 63% 31%;
+  --destructive: 0 100% 71%;
   --destructive-foreground: 0 0% 98%;
   --border: 0 0% 15%;
   --input: 0 0% 15%;
@@ -105,7 +105,8 @@ body {
   font-size: 1rem !important; /* 16px */
 }
 
-/* Make pricing table buttons larger */
+/* Make pricing table buttons larger and fully rounded */
 .cl-pricingTableCardFooterButton {
   font-size: 1rem !important; /* 16px */
+  border-radius: 9999px !important; /* rounded-full */
 }

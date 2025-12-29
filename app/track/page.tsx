@@ -34,6 +34,9 @@ export default async function TrackPage() {
   const has1kRows = has({ feature: '1k_rows' });
   const maxRows = has1kRows ? 1000 : 20;
   const currentCount = applications.length;
+  
+  // Check if user is on free plan
+  const isFreeUser = has({ plan: 'free_user' });
 
   return (
     <div className="min-h-screen bg-background py-8">
@@ -41,6 +44,7 @@ export default async function TrackPage() {
         applications={applications}
         maxRows={maxRows}
         currentCount={currentCount}
+        isFreeUser={isFreeUser}
       />
     </div>
   );

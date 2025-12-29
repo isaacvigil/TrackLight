@@ -12,12 +12,14 @@ interface ApplicationsTrackerProps {
   applications: JobApplication[];
   maxRows: number;
   currentCount: number;
+  isFreeUser: boolean;
 }
 
 export function ApplicationsTracker({ 
   applications, 
   maxRows, 
-  currentCount 
+  currentCount,
+  isFreeUser
 }: ApplicationsTrackerProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -60,9 +62,11 @@ export function ApplicationsTracker({
               <span className={currentCount >= maxRows ? "text-destructive font-medium" : currentCount >= maxRows * 0.8 ? "text-yellow-600 dark:text-yellow-500 font-medium" : "text-muted-foreground"}>
                 {currentCount} / {maxRows} tracked
               </span>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/pricing">Upgrade to Pro</Link>
-              </Button>
+              {isFreeUser && (
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/pricing">Upgrade to Pro</Link>
+                </Button>
+              )}
             </div>
             {searchQuery && (
               <span className="text-sm text-muted-foreground">

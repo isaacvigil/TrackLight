@@ -61,6 +61,47 @@ function normalizeLinkedInUrl(url: string): string {
 }
 
 /**
+ * Detects if page content is a login/sign-in page
+ */
+function isLoginPage(content: string): boolean {
+  const lowerContent = content.toLowerCase();
+  
+  // Strong indicators that this is definitely a login page
+  const strongIndicators = [
+    'sign in to view',
+    'log in to view',
+    'authentication required',
+    'please sign in',
+    'you must be logged in',
+    'session expired',
+  ];
+  
+  // If any strong indicator is present, it's a login page
+  if (strongIndicators.some(indicator => lowerContent.includes(indicator))) {
+    return true;
+  }
+  
+  // Check for multiple login indicators
+  const loginIndicators = [
+    'sign in',
+    'log in',
+    'login',
+    'forgot password',
+    'create account',
+    'register',
+    'email or phone',
+    'password',
+    'keep me logged in',
+  ];
+  
+  const matchCount = loginIndicators.filter(indicator => lowerContent.includes(indicator)).length;
+  
+  // If content is short (< 3000 chars) and has 3+ login indicators, it's a login page
+  // OR if content is very short (< 1500 chars) and has 2+ indicators
+  return (content.length < 3000 && matchCount >= 3) || (content.length < 1500 && matchCount >= 2);
+}
+
+/**
  * Fetches webpage content from a URL
  */
 async function fetchPageContent(url: string): Promise<string> {
@@ -93,6 +134,12 @@ async function fetchPageContent(url: string): Promise<string> {
     // Log content length for debugging
     console.log(`Fetched content length: ${cleanedHtml.length} chars for URL: ${url}`);
     
+    // Check if this is a login page
+    if (isLoginPage(cleanedHtml)) {
+      console.warn(`Detected login page for URL: ${url}`);
+      return ""; // Return empty to trigger fallback
+    }
+    
     // Even if content is short, return it - let AI decide if it's useful
     // Limit to first 12000 characters to provide more context
     return cleanedHtml.substring(0, 12000);
@@ -103,6 +150,66 @@ async function fetchPageContent(url: string): Promise<string> {
 }
 
 /**
+ * Attempts to extract company name from URL domain
+ * Handles patterns like: company.jobs, careers.company.com, company.careers.com
+ */
+function extractCompanyFromUrl(url: string): string | null {
+  try {
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname.toLowerCase();
+    
+    // Remove common TLDs and get the main domain parts
+    const domainParts = hostname.replace(/\.(com|net|org|io|co|jobs|uk|de|fr|es)$/g, '').split('.');
+    
+    // Pattern 1: company.jobs (e.g., dowjones.jobs)
+    if (hostname.endsWith('.jobs')) {
+      const companyName = domainParts[0];
+      return formatCompanyName(companyName);
+    }
+    
+    // Pattern 2: careers.company.com or jobs.company.com
+    if (domainParts.length >= 2 && (domainParts[0] === 'careers' || domainParts[0] === 'jobs')) {
+      const companyName = domainParts[1];
+      return formatCompanyName(companyName);
+    }
+    
+    // Pattern 3: company.careers.com
+    if (domainParts.length >= 2 && (domainParts[1] === 'careers' || domainParts[1] === 'jobs')) {
+      const companyName = domainParts[0];
+      return formatCompanyName(companyName);
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Failed to extract company from URL:", error);
+    return null;
+  }
+}
+
+/**
+ * Formats a company name from URL slug to proper capitalization
+ * Examples: "dowjones" → "Dow Jones", "microsoft" → "Microsoft"
+ */
+function formatCompanyName(slug: string): string {
+  // Handle common multi-word companies
+  const knownCompanies: Record<string, string> = {
+    'dowjones': 'Dow Jones',
+    'jpmorgan': 'JPMorgan',
+    'goldmansachs': 'Goldman Sachs',
+    'bankofamerica': 'Bank of America',
+    'morganstanley': 'Morgan Stanley',
+    'linkedin': 'LinkedIn',
+  };
+  
+  if (knownCompanies[slug]) {
+    return knownCompanies[slug];
+  }
+  
+  // Default: capitalize first letter
+  return slug.charAt(0).toUpperCase() + slug.slice(1);
+}
+
+/**
  * Extracts job application data from a URL using OpenAI
  */
 async function extractJobDataFromUrl(url: string): Promise<ExtractedJobData> {
@@ -110,11 +217,14 @@ async function extractJobDataFromUrl(url: string): Promise<ExtractedJobData> {
     // First, fetch the actual page content
     const pageContent = await fetchPageContent(url);
     
+    // Try to extract company from URL as fallback
+    const companyFromUrl = extractCompanyFromUrl(url);
+    
     if (!pageContent) {
-      console.warn("Could not fetch page content, using fallback");
+      console.warn("Could not fetch page content (likely login/auth required or JS-rendered), using URL-based fallback");
       return {
-        company: "[Update required]",
-        role: "[Update required]",
+        company: companyFromUrl || "(Unable to extract, input manually)",
+        role: "(Unable to extract, input manually)",
         salary: "",
         location: "",
         remoteStatus: "",
@@ -122,6 +232,9 @@ async function extractJobDataFromUrl(url: string): Promise<ExtractedJobData> {
     }
     
     console.log(`Extracting job data from ${pageContent.length} chars of content...`);
+    
+    // Check if this is a LinkedIn URL (might have authentication wall/partial content)
+    const isLinkedInUrl = url.toLowerCase().includes('linkedin.com');
     
     const { output } = await generateText({
       model: openai("gpt-4o"), // Use gpt-4o for better accuracy
@@ -133,6 +246,8 @@ async function extractJobDataFromUrl(url: string): Promise<ExtractedJobData> {
       prompt: `Extract job application information from this job posting page content.
       
       URL: ${url}
+      ${companyFromUrl ? `\nHINT: The URL domain suggests this might be a "${companyFromUrl}" job posting.` : ''}
+      ${isLinkedInUrl ? `\n⚠️  WARNING: This is a LinkedIn URL. The content may be incomplete due to authentication walls. Be EXTRA cautious with location data - only extract if ABSOLUTELY certain it's from the actual job posting, not navigation/footer/metadata text.` : ''}
       
       PAGE CONTENT:
       ${pageContent}
@@ -140,6 +255,7 @@ async function extractJobDataFromUrl(url: string): Promise<ExtractedJobData> {
       Extract the following information:
       
       1. Company name - The employer/company name
+         ${companyFromUrl ? `- If the page content doesn't clearly show the company, use: "${companyFromUrl}"` : ''}
       
       2. Job title/role - The position title (e.g., "Senior Software Engineer", "Product Manager")
          - DO NOT use generic site navigation text like "Join Our Team" or "Careers"
@@ -148,34 +264,120 @@ async function extractJobDataFromUrl(url: string): Promise<ExtractedJobData> {
          - Return empty string if not found
       
       4. Location - The job location(s):
-         - If 1 location: return the city name (e.g., "San Francisco", "Barcelona")
-         - If 2-3 locations: return comma-separated (e.g., "London, Paris, Berlin")
+         - ⚠️  CRITICAL: Only extract if EXPLICITLY stated in the actual job description section
+         - DO NOT extract location from:
+           * Page navigation, menus, or site chrome
+           * Footer text or copyright information
+           * Company headquarters address (unless that's the job location)
+           * Metadata or SEO text
+           * User profile information
+         - If the page content is minimal (< 1500 chars) or suspicious, return empty string
+         - If 1 location: return the city OR country name (e.g., "San Francisco", "Spain", "Barcelona")
+         - If 2-3 locations: return separated by " / " (e.g., "London / Paris / Berlin")
          - If more than 3 locations: return "Multiple"
-         - Extract only city/place names, not country codes
-         - Examples: "ESP | Barcelona" → "Barcelona", "UK, Spain, Germany" → "UK, Spain, Germany"
-         - Do NOT include work arrangement (Remote/Hybrid) in this field
-         - Return empty string if not found
+         - Extract only city/place/country names, not country codes
+         - Examples: 
+           * "ESP | Barcelona" → Location: "Barcelona"
+           * "Spain (Remote)" → Location: "Spain", Remote Status: "Remote" (split them!)
+           * "Barcelona - Remote" → Location: "Barcelona", Remote Status: "Remote" (split them!)
+           * "UK / Spain / Germany" → Location: "UK / Spain / Germany"
+         - Do NOT include work arrangement (Remote/Hybrid/In-office) in the location field
+         - IMPORTANT: If you see location + remote status together (e.g., "Spain (Remote)"), 
+           extract them as SEPARATE fields
+         - If location is not clearly visible in the job description, return empty string
+         - DO NOT guess, infer, or make up location information
+         - When in doubt, return empty string
       
       5. Remote Status - Work arrangement only:
          - Look for: "Remote", "Hybrid", "In-office", "On-site"
+         - If you see "Spain (Remote)" or "Barcelona - Remote":
+           * Location = "Spain" or "Barcelona"
+           * Remote Status = "Remote"
          - Return empty string if not specified
       
-      Rules:
-      - Use EXACT text from the page content
-      - Keep location and remote status separate
-      - Don't make up or guess information
-      - Return empty string for missing optional fields`,
+      CRITICAL RULES:
+      - Use ONLY information that is EXPLICITLY present in the page content
+      - For optional fields (salary, location, remoteStatus): If not clearly stated, return empty string
+      - NEVER make up, guess, or infer information that isn't explicitly in the content
+      - If the page content seems incomplete, minimal (< 1500 chars), or is a login page:
+        * Return empty strings for ALL optional fields (salary, location, remoteStatus)
+        * DO NOT extract ANY location information
+      - If you see text like "sign in", "log in", "forgot password", treat as login page and return empty strings`,
     });
     
     console.log(`Extracted data:`, output.jobData);
+    
+    // If AI couldn't extract company but we have it from URL, use that
+    if ((!output.jobData.company || output.jobData.company === "(Unable to extract, input manually)") && companyFromUrl) {
+      output.jobData.company = companyFromUrl;
+    }
+    
+    // Clean up location field: Extract and remove remote status if AI accidentally included it
+    if (output.jobData.location) {
+      const originalLocation = output.jobData.location;
+      
+      // Check for patterns like "Spain (Remote)", "Barcelona - Remote", etc.
+      const remotePattern = /\s*[-–—()\s]*(remote|hybrid|in-office|on-site)\s*[-–—()\s]*/gi;
+      const remoteMatch = originalLocation.match(/\b(remote|hybrid|in-office|on-site)\b/gi);
+      
+      // If we found a remote status in location and don't have one yet, extract it
+      if (remoteMatch && !output.jobData.remoteStatus) {
+        const extractedStatus = remoteMatch[0];
+        // Capitalize first letter
+        output.jobData.remoteStatus = extractedStatus.charAt(0).toUpperCase() + extractedStatus.slice(1).toLowerCase();
+        console.log(`Extracted remote status "${output.jobData.remoteStatus}" from location field`);
+      }
+      
+      // Now clean the location by removing the remote status
+      const locationCleanup = originalLocation
+        .replace(remotePattern, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      if (locationCleanup !== originalLocation) {
+        console.log(`Cleaned location from "${originalLocation}" to "${locationCleanup}"`);
+        output.jobData.location = locationCleanup;
+      }
+    }
+    
+    // Validate extraction: If page content was very short (< 1500 chars), 
+    // the data is likely unreliable/hallucinated
+    if (pageContent.length < 1500) {
+      console.warn(`Page content too short (${pageContent.length} chars), clearing potentially hallucinated data`);
+      
+      // Clear optional fields that might be hallucinated
+      if (output.jobData.location && output.jobData.location !== "") {
+        console.warn(`Clearing potentially hallucinated location: "${output.jobData.location}"`);
+        output.jobData.location = "";
+      }
+      
+      if (output.jobData.salary && output.jobData.salary !== "") {
+        console.warn(`Clearing potentially hallucinated salary: "${output.jobData.salary}"`);
+        output.jobData.salary = "";
+      }
+      
+      if (output.jobData.remoteStatus && output.jobData.remoteStatus !== "") {
+        console.warn(`Clearing potentially hallucinated remote status: "${output.jobData.remoteStatus}"`);
+        output.jobData.remoteStatus = "";
+      }
+      
+      // If company/role look generic or placeholder-like, also flag them
+      if (!output.jobData.company || output.jobData.company.length < 3) {
+        output.jobData.company = "(Unable to extract, input manually)";
+      }
+      if (!output.jobData.role || output.jobData.role.length < 3) {
+        output.jobData.role = "(Unable to extract, input manually)";
+      }
+    }
 
     return output.jobData;
   } catch (error) {
     console.error("AI extraction failed:", error);
-    // Fallback to placeholder data if AI fails
+    // Fallback: try to use company from URL
+    const companyFromUrl = extractCompanyFromUrl(url);
     return {
-      company: "[Update required]",
-      role: "[Update required]",
+      company: companyFromUrl || "(Unable to extract, input manually)",
+      role: "(Unable to extract, input manually)",
       salary: "",
       location: "",
       remoteStatus: "",

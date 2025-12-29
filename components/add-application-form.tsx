@@ -37,7 +37,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
       
       // Check if extraction failed (placeholder values were used)
       // Only show warning if BOTH company and role couldn't be extracted
-      if (result.company?.includes("[Update required]") && result.role?.includes("[Update required]")) {
+      if (result.company?.includes("(Unable to extract, input manually)") && result.role?.includes("(Unable to extract, input manually)")) {
         setWarning("Could not extract job details from this page. Please update the company and role by clicking on them in the table.");
       }
       
