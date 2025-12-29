@@ -13,7 +13,7 @@ const cardVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: "glass",
     },
   }
 )
@@ -44,7 +44,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"h3">) {
   return (
     <h3
       className={cn(
-        "text-2xl font-semibold leading-tight tracking-tight",
+        "text-2xl font-normal leading-tight tracking-tight",
         className
       )}
       {...props}
@@ -55,7 +55,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"h3">) {
 function CardDescription({ className, ...props }: React.ComponentProps<"p">) {
   return (
     <p
-      className={cn("text-sm text-muted-foreground", className)}
+      className={cn("text-lg text-muted-foreground", className)}
       {...props}
     />
   )

@@ -35,6 +35,49 @@ type SortField =
 
 type SortDirection = "asc" | "desc" | null;
 
+interface SortableHeaderProps {
+  field: SortField;
+  children: React.ReactNode;
+  className?: string;
+  isActive: boolean;
+  sortDirection: SortDirection;
+  onSort: (field: SortField) => void;
+}
+
+function SortableHeader({ field, children, className, isActive, sortDirection, onSort }: SortableHeaderProps) {
+  return (
+    <TableHead 
+      className={cn(
+        "cursor-pointer select-none hover:bg-muted/50 transition-colors",
+        className
+      )}
+      onClick={() => onSort(field)}
+    >
+      <div className="flex items-center gap-1">
+        {children}
+        <div className="flex flex-col ml-1">
+          <ChevronUp 
+            className={cn(
+              "size-3 -mb-1",
+              isActive && sortDirection === "asc" 
+                ? "text-foreground" 
+                : "text-muted-foreground/30"
+            )}
+          />
+          <ChevronDown 
+            className={cn(
+              "size-3",
+              isActive && sortDirection === "desc" 
+                ? "text-foreground" 
+                : "text-muted-foreground/30"
+            )}
+          />
+        </div>
+      </div>
+    </TableHead>
+  );
+}
+
 export function SortableApplicationsTable({ applications }: SortableApplicationsTableProps) {
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
@@ -60,8 +103,8 @@ export function SortableApplicationsTable({ applications }: SortableApplications
     }
 
     return [...applications].sort((a, b) => {
-      let aValue: any = a[sortField];
-      let bValue: any = b[sortField];
+      const aValue: unknown = a[sortField];
+      const bValue: unknown = b[sortField];
 
       // Handle null/empty values - always sort them to the end
       if (!aValue && !bValue) return 0;
@@ -70,8 +113,8 @@ export function SortableApplicationsTable({ applications }: SortableApplications
 
       // Date sorting
       if (sortField === "appliedDate" || sortField === "statusChangeDate") {
-        const aDate = aValue ? new Date(aValue).getTime() : 0;
-        const bDate = bValue ? new Date(bValue).getTime() : 0;
+        const aDate = aValue ? new Date(aValue as string | Date).getTime() : 0;
+        const bDate = bValue ? new Date(bValue as string | Date).getTime() : 0;
         return sortDirection === "asc" ? aDate - bDate : bDate - aDate;
       }
 
@@ -85,54 +128,18 @@ export function SortableApplicationsTable({ applications }: SortableApplications
     });
   }, [applications, sortField, sortDirection]);
 
-  function SortableHeader({ field, children, className }: { field: SortField; children: React.ReactNode; className?: string }) {
-    const isActive = sortField === field;
-    
-    return (
-      <TableHead 
-        className={cn(
-          "cursor-pointer select-none hover:bg-muted/50 transition-colors",
-          className
-        )}
-        onClick={() => handleSort(field)}
-      >
-        <div className="flex items-center gap-1">
-          {children}
-          <div className="flex flex-col ml-1">
-            <ChevronUp 
-              className={cn(
-                "size-3 -mb-1",
-                isActive && sortDirection === "asc" 
-                  ? "text-foreground" 
-                  : "text-muted-foreground/30"
-              )}
-            />
-            <ChevronDown 
-              className={cn(
-                "size-3",
-                isActive && sortDirection === "desc" 
-                  ? "text-foreground" 
-                  : "text-muted-foreground/30"
-              )}
-            />
-          </div>
-        </div>
-      </TableHead>
-    );
-  }
-
   return (
     <Table>
       <TableHeader className="mb-2">
         <TableRow>
-          <SortableHeader field="company" className="w-[180px]">Company</SortableHeader>
-          <SortableHeader field="role" className="w-[200px]">Role</SortableHeader>
-          <SortableHeader field="location" className="w-[150px]">Location</SortableHeader>
-          <SortableHeader field="remoteStatus" className="w-[110px]">Remote</SortableHeader>
-          <SortableHeader field="salary" className="w-[130px]">Salary</SortableHeader>
-          <SortableHeader field="applicationStatus" className="w-[140px]">Status</SortableHeader>
-          <SortableHeader field="appliedDate" className="w-[115px]">Applied on</SortableHeader>
-          <SortableHeader field="statusChangeDate" className="w-[120px]">Status changed</SortableHeader>
+          <SortableHeader field="company" className="w-[180px]" isActive={sortField === "company"} sortDirection={sortDirection} onSort={handleSort}>Company</SortableHeader>
+          <SortableHeader field="role" className="w-[200px]" isActive={sortField === "role"} sortDirection={sortDirection} onSort={handleSort}>Role</SortableHeader>
+          <SortableHeader field="location" className="w-[150px]" isActive={sortField === "location"} sortDirection={sortDirection} onSort={handleSort}>Location</SortableHeader>
+          <SortableHeader field="remoteStatus" className="w-[110px]" isActive={sortField === "remoteStatus"} sortDirection={sortDirection} onSort={handleSort}>Remote</SortableHeader>
+          <SortableHeader field="salary" className="w-[130px]" isActive={sortField === "salary"} sortDirection={sortDirection} onSort={handleSort}>Salary</SortableHeader>
+          <SortableHeader field="applicationStatus" className="w-[140px]" isActive={sortField === "applicationStatus"} sortDirection={sortDirection} onSort={handleSort}>Status</SortableHeader>
+          <SortableHeader field="appliedDate" className="w-[115px]" isActive={sortField === "appliedDate"} sortDirection={sortDirection} onSort={handleSort}>Applied on</SortableHeader>
+          <SortableHeader field="statusChangeDate" className="w-[120px]" isActive={sortField === "statusChangeDate"} sortDirection={sortDirection} onSort={handleSort}>Status changed</SortableHeader>
           <TableHead className="text-right w-[145px]"></TableHead>
         </TableRow>
       </TableHeader>
@@ -189,13 +196,21 @@ export function SortableApplicationsTable({ applications }: SortableApplications
               </TableCell>
               <TableCell className="text-base">
                 {app.appliedDate 
-                  ? new Date(app.appliedDate).toLocaleDateString()
+                  ? new Date(app.appliedDate).toLocaleDateString('en-GB', { 
+                      day: 'numeric', 
+                      month: 'short', 
+                      year: 'numeric' 
+                    })
                   : "—"
                 }
               </TableCell>
               <TableCell className="text-base">
                 {app.statusChangeDate 
-                  ? new Date(app.statusChangeDate).toLocaleDateString()
+                  ? new Date(app.statusChangeDate).toLocaleDateString('en-GB', { 
+                      day: 'numeric', 
+                      month: 'short', 
+                      year: 'numeric' 
+                    })
                   : "—"
                 }
               </TableCell>

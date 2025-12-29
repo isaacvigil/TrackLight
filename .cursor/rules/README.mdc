@@ -126,7 +126,7 @@ To create a new rule:
 - Model: `import { openai } from "@ai-sdk/openai"`
 - Use `Output.object()` with Zod schemas for type-safe AI responses
 - Always implement error handling with fallback data
-- Use `gpt-4o-mini` for cost-effectiveness
+- Use `gpt-4o` for accuracy (data extraction requires precision - gpt-4o-mini may hallucinate)
 - Reference [ai-data-extraction.mdc](mdc:.cursor/rules/ai-data-extraction.mdc) for detailed guidelines
 
 ### Clerk Billing

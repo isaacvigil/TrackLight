@@ -29,8 +29,9 @@ This app has the following subscription plans configured in Clerk:
 Feature flags control access to specific functionality:
 
 1. **`1k_rows`** - Access to store up to 1,000 job application records
-2. **`delete_rows`** - Ability to delete job application records
-3. **`notes`** - Access to create and manage notes on job applications
+2. **`notes`** - Access to create and manage notes on job applications
+
+**Note:** Delete functionality is available to all users (no longer a Pro-only feature).
 
 ## Configuration
 
@@ -217,19 +218,29 @@ import { db } from '@/lib/db'
 import { jobApplications } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 
-export async function deleteJobApplication(applicationId: string) {
+export async function createNote(applicationId: string, content: string) {
   const { has, userId } = await auth()
   
   if (!userId) {
     throw new Error("Unauthorized")
   }
 
-  // CRITICAL: Check feature access before deletion
-  if (!has({ feature: 'delete_rows' })) {
-    throw new Error("Upgrade to Pro to delete applications")
+  // CRITICAL: Check notes feature access
+  if (!has({ feature: 'notes' })) {
+    throw new Error("Upgrade to access notes feature")
   }
 
-  // Verify ownership and delete
+  // Create note...
+}
+
+export async function deleteJobApplication(applicationId: string) {
+  const { userId } = await auth()
+  
+  if (!userId) {
+    throw new Error("Unauthorized")
+  }
+
+  // Verify ownership and delete (no feature check needed - available to all users)
   await db
     .delete(jobApplications)
     .where(
@@ -240,21 +251,6 @@ export async function deleteJobApplication(applicationId: string) {
     )
 
   revalidatePath('/track')
-}
-
-export async function createNote(applicationId: string, content: string) {
-  const { has, userId } = await auth()
-  
-  if (!userId) {
-    throw new Error("Unauthorized")
-  }
-
-  // Check notes feature access
-  if (!has({ feature: 'notes' })) {
-    throw new Error("Upgrade to access notes feature")
-  }
-
-  // Create note...
 }
 
 export async function checkRowLimit() {
@@ -420,7 +416,6 @@ import { auth } from '@clerk/nextjs/server'
 export default async function ApplicationCard({ application }) {
   const { has } = await auth()
   
-  const canDelete = has({ feature: 'delete_rows' })
   const hasNotes = has({ feature: 'notes' })
 
   return (
@@ -431,16 +426,9 @@ export default async function ApplicationCard({ application }) {
       <CardContent>
         {/* Always visible */}
         <ViewButton />
+        <DeleteButton /> {/* Available to all users */}
         
         {/* Feature-gated */}
-        {canDelete ? (
-          <DeleteButton />
-        ) : (
-          <Button disabled>
-            Delete (Pro only)
-          </Button>
-        )}
-        
         {hasNotes && <NotesSection />}
       </CardContent>
     </Card>
@@ -507,7 +495,7 @@ Before deploying any feature-gated functionality:
 | Feature | free_user | pro | unemployed |
 |---------|-----------|-----|------------|
 | Track applications | ✅ (up to 20) | ✅ (up to 1,000) | ✅ (up to 1,000) |
-| Delete applications | ❌ | ✅ | ✅ |
+| Delete applications | ✅ | ✅ | ✅ |
 | Add notes | ❌ | ✅ | ✅ |
 | Export data | ❌ | ✅ | ✅ |
 | Advanced filters | ❌ | ✅ | ✅ |

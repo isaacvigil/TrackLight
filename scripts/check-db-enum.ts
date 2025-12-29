@@ -5,6 +5,10 @@ dotenv.config({ path: ".env" });
 
 const sql = neon(process.env.DATABASE_URL!);
 
+interface EnumRow {
+  enumlabel: string;
+}
+
 async function checkEnum() {
   console.log("Checking enum values in database...\n");
   
@@ -14,10 +18,10 @@ async function checkEnum() {
       FROM pg_enum 
       WHERE enumtypid = 'application_status'::regtype 
       ORDER BY enumsortorder
-    `;
+    ` as EnumRow[];
     
     console.log("Current enum values:");
-    result.forEach((row: any) => {
+    result.forEach((row) => {
       console.log(`  - ${row.enumlabel}`);
     });
     
@@ -28,7 +32,7 @@ async function checkEnum() {
     console.log("  - no_match");
     console.log("  - accepted");
     
-    const values = result.map((r: any) => r.enumlabel);
+    const values = result.map((r) => r.enumlabel);
     if (values.includes('bookmarked') && values.includes('interviewing') && values.includes('no_match')) {
       console.log("\n✅ Database enum is correct!");
     } else {

@@ -2,7 +2,7 @@ import { PricingTable } from '@clerk/nextjs'
 import { auth } from '@clerk/nextjs/server'
 
 export default async function PricingPage() {
-  const { userId } = await auth()
+  await auth() // Ensure user is authenticated
 
   return (
     <div className="container mx-auto px-4 py-12 min-h-screen">

@@ -143,11 +143,11 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
         </div>
       )}
       {warning && (
-        <div className="rounded-md bg-amber-500/10 border border-amber-500/20 p-3 text-sm">
+        <div className="rounded-md bg-orange-500/10 border border-orange-500/20 p-3 text-sm">
           <div className="flex items-start gap-2">
-            <Info className="size-4 text-amber-600 dark:text-amber-500 mt-0.5 shrink-0" />
+            <Info className="size-4 text-orange-600 dark:text-orange-400 mt-0.5 shrink-0" />
             <div className="flex-1">
-              <p className="text-amber-900 dark:text-amber-200 font-medium">{warning}</p>
+              <p className="text-orange-900 dark:text-orange-200 font-medium">{warning}</p>
             </div>
           </div>
         </div>

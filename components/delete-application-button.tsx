@@ -29,7 +29,7 @@ export function DeleteApplicationButton({ applicationId }: DeleteApplicationButt
       await deleteJobApplication(applicationId);
     } catch (error) {
       console.error("Failed to delete application:", error);
-      alert("Failed to delete application. Please try again.");
+      alert(error instanceof Error ? error.message : "Failed to delete application. Please try again.");
     } finally {
       setIsDeleting(false);
     }
@@ -41,6 +41,7 @@ export function DeleteApplicationButton({ applicationId }: DeleteApplicationButt
         <Button 
           variant="ghost" 
           size="sm"
+          className="h-10 w-10 px-2"
           disabled={isDeleting}
         >
           <Trash2 className="size-5" />

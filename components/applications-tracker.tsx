@@ -6,6 +6,8 @@ import { MoveUp } from "lucide-react";
 import { AddApplicationForm } from "@/components/add-application-form";
 import { SortableApplicationsTable } from "@/components/sortable-applications-table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import type { JobApplication } from "@/db/schema";
 
 interface ApplicationsTrackerProps {
@@ -48,8 +50,11 @@ export function ApplicationsTracker({
       <div className="container mx-auto px-4">
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <h2 className="text-2xl font-bold tracking-tight shrink-0">Job applications tracker</h2>
-            <div className="flex-1 max-w-md">
+            <div className="flex items-center gap-2 shrink-0">
+              <h2 className="text-2xl font-bold tracking-tight">Job applications tracker</h2>
+              <Badge variant="secondary">Beta</Badge>
+            </div>
+            <div className="w-full md:flex-1 md:max-w-md">
               <AddApplicationForm 
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
@@ -59,7 +64,12 @@ export function ApplicationsTracker({
           
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className={currentCount >= maxRows ? "text-destructive font-medium" : currentCount >= maxRows * 0.8 ? "text-yellow-600 dark:text-yellow-500 font-medium" : "text-muted-foreground"}>
+              <span className={cn(
+                "font-medium",
+                currentCount >= maxRows && "text-destructive",
+                currentCount >= maxRows * 0.8 && currentCount < maxRows && "text-orange-600 dark:text-orange-400",
+                currentCount < maxRows * 0.8 && "text-muted-foreground font-normal"
+              )}>
                 {currentCount} / {maxRows} tracked
               </span>
               {isFreeUser && (

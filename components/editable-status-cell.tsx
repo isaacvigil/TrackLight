@@ -25,11 +25,11 @@ const statusOptions = [
 ];
 
 const statusColors: Record<string, string> = {
-  bookmarked: "text-slate-700 dark:text-slate-300",
-  applied: "text-blue-700 dark:text-blue-300",
-  interviewing: "text-purple-700 dark:text-purple-300",
-  no_match: "text-red-700 dark:text-red-300",
-  accepted: "text-emerald-700 dark:text-emerald-300",
+  bookmarked: "text-muted-foreground",
+  applied: "text-blue-600 dark:text-blue-400",
+  interviewing: "text-purple-600 dark:text-purple-400",
+  no_match: "text-destructive",
+  accepted: "text-green-600 dark:text-green-400",
 };
 
 export function EditableStatusCell({ applicationId, value }: EditableStatusCellProps) {

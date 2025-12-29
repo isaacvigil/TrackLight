@@ -10,7 +10,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ThemedClerkProvider } from "@/components/themed-clerk-provider";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
-import { Header } from "@/components/ui/header";
+import { Header } from "@/components/header";
 import "./globals.css";
 
 const inter = Inter({
