@@ -67,7 +67,14 @@ export function ApplicationsTracker({
 
       <div className="w-full overflow-x-auto">
         <div className="container mx-auto px-4">
-          <SortableApplicationsTable applications={filteredApplications} />
+          {applications.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground text-lg">
+              <p>No applications tracked yet</p>
+              <p>Paste the job post link into the field on the top right and start tracking</p>
+            </div>
+          ) : (
+            <SortableApplicationsTable applications={filteredApplications} />
+          )}
         </div>
       </div>
     </div>

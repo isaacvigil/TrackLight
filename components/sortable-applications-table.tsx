@@ -139,8 +139,8 @@ export function SortableApplicationsTable({ applications }: SortableApplications
       <TableBody>
         {sortedApplications.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={9} className="text-center text-muted-foreground">
-              No applications yet. Start tracking your job opportunities!
+            <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+              No applications match your search.
             </TableCell>
           </TableRow>
         ) : (
