@@ -21,6 +21,35 @@ const remoteStatusOptions = [
   { value: "On site", label: "On site" },
 ];
 
+// Normalize legacy/variant remote status values to standard options
+function normalizeRemoteStatus(value: string | null): string {
+  if (!value) return remoteStatusOptions[0].value;
+  
+  const normalized = value.toLowerCase().trim();
+  
+  // Map "Remote Friendly", "Remote-Friendly", etc. to "Remote"
+  if (normalized.includes("remote") && !normalized.includes("hybrid")) {
+    return "Remote";
+  }
+  
+  // Map "Hybrid" variants
+  if (normalized.includes("hybrid")) {
+    return "Hybrid";
+  }
+  
+  // Map "On site", "In-office", "Office", etc.
+  if (normalized.includes("on site") || 
+      normalized.includes("on-site") || 
+      normalized.includes("in-office") || 
+      normalized.includes("in office") ||
+      normalized.includes("office")) {
+    return "On site";
+  }
+  
+  // Default to the original value if no match
+  return value;
+}
+
 export function EditableRemoteStatusCell({ applicationId, value }: EditableRemoteStatusCellProps) {
   const [isSaving, setIsSaving] = useState(false);
 
@@ -38,7 +67,8 @@ export function EditableRemoteStatusCell({ applicationId, value }: EditableRemot
     }
   }
 
-  const currentValue = value || remoteStatusOptions[0].value;
+  const normalizedValue = normalizeRemoteStatus(value);
+  const currentValue = normalizedValue;
   const currentLabel = remoteStatusOptions.find((opt) => opt.value === currentValue)?.label || currentValue;
 
   return (

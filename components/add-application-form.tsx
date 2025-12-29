@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createJobApplication } from "@/app/actions/job-applications";
 import Link from "next/link";
-import { AlertCircle, Search, X, Info } from "lucide-react";
+import { AlertCircle, Search, X, Info, Loader2 } from "lucide-react";
 
 interface AddApplicationFormProps {
   searchQuery: string;
@@ -121,7 +121,10 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                 variant="ghost"
                 className="absolute right-1 top-1 h-10 rounded-3xl"
               >
-                {isSubmitting ? "Extracting job data..." : "Add"}
+                Add
+                {isSubmitting && (
+                  <Loader2 className="ml-2 size-4 animate-spin" />
+                )}
               </Button>
             </div>
           </div>

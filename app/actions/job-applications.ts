@@ -264,19 +264,20 @@ async function extractJobDataFromUrl(url: string): Promise<ExtractedJobData> {
          - Return empty string if not found
       
       4. Location - The job location(s):
-         - ⚠️  CRITICAL: Only extract if EXPLICITLY stated in the actual job description section
-         - DO NOT extract location from:
-           * Page navigation, menus, or site chrome
-           * Footer text or copyright information
-           * Company headquarters address (unless that's the job location)
-           * Metadata or SEO text
-           * User profile information
-         - If the page content is minimal (< 1500 chars) or suspicious, return empty string
-         - If 1 location: return the city OR country name (e.g., "San Francisco", "Spain", "Barcelona")
+         - ✅  EXTRACT FROM: Job posting metadata (e.g., "Location: United States"), job description, requirements section
+         - ❌  DO NOT EXTRACT FROM: Site navigation menus, page headers, footer copyright text, user profile info
+         - Look for patterns like:
+           * "Location: [place]" (structured metadata) ✅
+           * "Based in: [place]" (job description) ✅
+           * "[Place] - Remote" (job description) ✅
+           * Site footer "© 2024 Company, [Place]" (footer) ❌
+           * Navigation "Jobs | [Place] | About" (navigation) ❌
+         - If 1 location: return the city OR country name (e.g., "San Francisco", "Spain", "United States", "Barcelona")
          - If 2-3 locations: return separated by " / " (e.g., "London / Paris / Berlin")
          - If more than 3 locations: return "Multiple"
          - Extract only city/place/country names, not country codes
          - Examples: 
+           * "Location: United States" → Location: "United States"
            * "ESP | Barcelona" → Location: "Barcelona"
            * "Spain (Remote)" → Location: "Spain", Remote Status: "Remote" (split them!)
            * "Barcelona - Remote" → Location: "Barcelona", Remote Status: "Remote" (split them!)
@@ -284,9 +285,8 @@ async function extractJobDataFromUrl(url: string): Promise<ExtractedJobData> {
          - Do NOT include work arrangement (Remote/Hybrid/In-office) in the location field
          - IMPORTANT: If you see location + remote status together (e.g., "Spain (Remote)"), 
            extract them as SEPARATE fields
-         - If location is not clearly visible in the job description, return empty string
-         - DO NOT guess, infer, or make up location information
-         - When in doubt, return empty string
+         - If location is genuinely not stated in the job posting, return empty string
+         - DO NOT guess or make up location information if it's not present
       
       5. Remote Status - Work arrangement only:
          - Look for: "Remote", "Hybrid", "In-office", "On-site"
@@ -340,28 +340,25 @@ async function extractJobDataFromUrl(url: string): Promise<ExtractedJobData> {
       }
     }
     
-    // Validate extraction: If page content was very short (< 1500 chars), 
+    // Validate extraction: If page content was very short (< 800 chars), 
     // the data is likely unreliable/hallucinated
-    if (pageContent.length < 1500) {
-      console.warn(`Page content too short (${pageContent.length} chars), clearing potentially hallucinated data`);
+    // Reduced threshold because some structured job boards (like Dribbble) have concise, valid data
+    if (pageContent.length < 800) {
+      console.warn(`Page content very short (${pageContent.length} chars), validating extracted data`);
       
-      // Clear optional fields that might be hallucinated
-      if (output.jobData.location && output.jobData.location !== "") {
-        console.warn(`Clearing potentially hallucinated location: "${output.jobData.location}"`);
+      // Only clear if data looks suspicious (generic/placeholder-like)
+      // Allow location if it's a valid country/city name (not empty, has reasonable length)
+      if (output.jobData.location && output.jobData.location.length < 2) {
+        console.warn(`Clearing suspicious location (too short): "${output.jobData.location}"`);
         output.jobData.location = "";
       }
       
-      if (output.jobData.salary && output.jobData.salary !== "") {
-        console.warn(`Clearing potentially hallucinated salary: "${output.jobData.salary}"`);
+      if (output.jobData.salary && output.jobData.salary.length < 2) {
+        console.warn(`Clearing suspicious salary (too short): "${output.jobData.salary}"`);
         output.jobData.salary = "";
       }
       
-      if (output.jobData.remoteStatus && output.jobData.remoteStatus !== "") {
-        console.warn(`Clearing potentially hallucinated remote status: "${output.jobData.remoteStatus}"`);
-        output.jobData.remoteStatus = "";
-      }
-      
-      // If company/role look generic or placeholder-like, also flag them
+      // If company/role look generic or placeholder-like, flag them
       if (!output.jobData.company || output.jobData.company.length < 3) {
         output.jobData.company = "(Unable to extract, input manually)";
       }

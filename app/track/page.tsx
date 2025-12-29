@@ -45,6 +45,7 @@ export default async function TrackPage() {
         maxRows={maxRows}
         currentCount={currentCount}
         isFreeUser={isFreeUser}
+        hasUnlimitedRows={hasUnlimitedRows}
       />
     </div>
   );

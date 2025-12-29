@@ -14,13 +14,15 @@ interface ApplicationsTrackerProps {
   maxRows: number;
   currentCount: number;
   isFreeUser: boolean;
+  hasUnlimitedRows: boolean;
 }
 
 export function ApplicationsTracker({ 
   applications, 
   maxRows, 
   currentCount,
-  isFreeUser
+  isFreeUser,
+  hasUnlimitedRows
 }: ApplicationsTrackerProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -50,7 +52,7 @@ export function ApplicationsTracker({
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-2 shrink-0">
-              <h2 className="text-2xl font-bold tracking-tight">Job applications tracker</h2>
+              <h2 className="text-2xl font-medium tracking-tight">Job applications tracker</h2>
             </div>
             <div className="w-full md:flex-1 md:max-w-md">
               <AddApplicationForm 
@@ -68,7 +70,7 @@ export function ApplicationsTracker({
                 currentCount >= maxRows * 0.8 && currentCount < maxRows && "text-orange-600 dark:text-orange-400",
                 currentCount < maxRows * 0.8 && "text-muted-foreground font-normal"
               )}>
-                {currentCount} / {maxRows} tracked
+                {currentCount} of {hasUnlimitedRows ? "unlimited" : maxRows} tracked
               </span>
               {isFreeUser && (
                 <Button asChild variant="outline" size="sm">
@@ -88,7 +90,7 @@ export function ApplicationsTracker({
       <div className="w-full overflow-x-auto">
         <div className="container mx-auto px-4">
           {applications.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground text-base">
+            <div className="text-center py-12 text-muted-foreground text-lg">
               <p>No applications tracked yet</p>
               <p className="flex items-center justify-center gap-1">
                 <span>Paste the job post link in the field on the top right</span>

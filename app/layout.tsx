@@ -47,7 +47,7 @@ export default function RootLayout({
             <Header variant="transparent">
               <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <Logo />
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <Button variant="ghost" asChild>
                     <a href="/pricing">Pricing</a>
                   </Button>
