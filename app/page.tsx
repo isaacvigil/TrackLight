@@ -39,7 +39,7 @@ export default async function Home() {
             alt="Person working on laptop"
             width={400}
             height={268}
-            className="rounded-lg shadow-lg"
+            className="rounded-[40px] shadow-lg"
             priority
           />
         </div>
