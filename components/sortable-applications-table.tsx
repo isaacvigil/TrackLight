@@ -15,6 +15,7 @@ import { DeleteApplicationButton } from "@/components/delete-application-button"
 import { EditableCell } from "@/components/editable-cell";
 import { EditableStatusCell } from "@/components/editable-status-cell";
 import { EditableRemoteStatusCell } from "@/components/editable-remote-status-cell";
+import { EditableDateCell } from "@/components/editable-date-cell";
 import { NotesDialog } from "@/components/notes-dialog";
 import type { JobApplication } from "@/db/schema";
 import { cn } from "@/lib/utils";
@@ -194,25 +195,19 @@ export function SortableApplicationsTable({ applications }: SortableApplications
                   value={app.applicationStatus}
                 />
               </TableCell>
-              <TableCell className="text-base">
-                {app.appliedDate 
-                  ? new Date(app.appliedDate).toLocaleDateString('en-GB', { 
-                      day: 'numeric', 
-                      month: 'short', 
-                      year: 'numeric' 
-                    })
-                  : "—"
-                }
+              <TableCell className="p-0 -ml-px">
+                <EditableDateCell
+                  applicationId={app.id}
+                  field="appliedDate"
+                  value={app.appliedDate}
+                />
               </TableCell>
-              <TableCell className="text-base">
-                {app.statusChangeDate 
-                  ? new Date(app.statusChangeDate).toLocaleDateString('en-GB', { 
-                      day: 'numeric', 
-                      month: 'short', 
-                      year: 'numeric' 
-                    })
-                  : "—"
-                }
+              <TableCell className="p-0 -ml-px">
+                <EditableDateCell
+                  applicationId={app.id}
+                  field="statusChangeDate"
+                  value={app.statusChangeDate}
+                />
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-1">

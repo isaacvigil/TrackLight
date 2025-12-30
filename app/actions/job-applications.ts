@@ -465,7 +465,7 @@ export async function createJobApplication(input: CreateJobApplicationInput) {
 export async function updateJobApplicationField(
   applicationId: string,
   field: string,
-  value: string | null
+  value: string | Date | null
 ) {
   // ✅ CORRECT: Authenticate user first
   const { userId } = await auth();
@@ -482,6 +482,8 @@ export async function updateJobApplicationField(
     "location",
     "remoteStatus",
     "applicationStatus",
+    "appliedDate",
+    "statusChangeDate",
   ];
 
   if (!allowedFields.includes(field)) {
@@ -518,6 +520,16 @@ export async function updateJobApplicationField(
   if (field === "applicationStatus" && currentApplication) {
     updateData.statusChangeDate = new Date();
     
+    // Debug: Log status change date update
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Updating statusChangeDate:', {
+        applicationId,
+        oldStatus: currentApplication.applicationStatus,
+        newStatus: value,
+        statusChangeDate: updateData.statusChangeDate,
+      });
+    }
+    
     // If changing TO bookmarked, clear the appliedDate (not yet applied)
     if (value === "bookmarked") {
       updateData.appliedDate = null;
@@ -526,6 +538,12 @@ export async function updateJobApplicationField(
     else if (currentApplication.applicationStatus === "bookmarked" && !currentApplication.appliedDate) {
       updateData.appliedDate = new Date();
     }
+  }
+
+  // If manually updating appliedDate or statusChangeDate, ensure proper type
+  if (field === "appliedDate" || field === "statusChangeDate") {
+    // Value is already a Date or null from the client
+    updateData[field] = value as Date | null;
   }
 
   // ✅ CORRECT: Update only if the record belongs to the user
