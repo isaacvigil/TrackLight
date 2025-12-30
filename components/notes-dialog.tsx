@@ -28,9 +28,30 @@ export function NotesDialog({ applicationId, role, companyName, initialNotes }: 
   const [open, setOpen] = useState(false);
   const [notes, setNotes] = useState(initialNotes || "");
   const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const hasChanges = notes !== (initialNotes || "");
+
+  async function saveNotes() {
+    setError(null);
+    setIsSaving(true);
+
+    try {
+      await updateJobApplicationNotes({
+        id: applicationId,
+        notes: notes.trim() || null,
+      });
+      // Close the modal after successful save
+      setOpen(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save notes");
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   async function handleOpenChange(newOpen: boolean) {
-    if (!newOpen && notes !== (initialNotes || "")) {
+    if (!newOpen && hasChanges) {
       // Save notes when closing if they changed
       try {
         await updateJobApplicationNotes({
@@ -104,6 +125,17 @@ export function NotesDialog({ applicationId, role, companyName, initialNotes }: 
             onChange={(e) => setNotes(e.target.value)}
             className="min-h-[400px]"
           />
+
+          <div className="flex items-center justify-end gap-3">
+            <Button
+              onClick={saveNotes}
+              disabled={!hasChanges || isSaving}
+              className="min-w-[120px]"
+              type="button"
+            >
+              {isSaving ? "Saving..." : "Save Notes"}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

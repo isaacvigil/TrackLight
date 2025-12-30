@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="32" height="32"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="32" height="32" rx="8" fill="url(#paint0_linear_106_780)"></rect>
+<path d="M14.293 17.7071L13.5859 18.4142" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M25.6068 13.4645C25.7943 13.652 25.8997 13.9064 25.8997 14.1716C25.8997 14.4368 25.7943 14.6911 25.6068 14.8787L22.7784 17.7071C22.3194 18.1661 21.7239 18.4638 21.0813 18.5556L20.0914 18.6971C19.2346 18.8195 18.4406 19.2164 17.8286 19.8284L12.1718 25.4853C11.7967 25.8604 11.288 26.0711 10.7575 26.0711C10.2271 26.0711 9.7184 25.8604 9.34333 25.4853L6.5149 22.6569C6.13983 22.2818 5.92912 21.7731 5.92912 21.2426C5.92912 20.7122 6.13983 20.2035 6.5149 19.8284L12.1718 14.1716C12.7837 13.5596 13.1807 12.7656 13.3031 11.9088L13.4446 10.9189C13.5363 10.2763 13.8341 9.68082 14.2931 9.22182L17.1215 6.3934C17.309 6.20586 17.5634 6.1005 17.8286 6.1005C18.0938 6.1005 18.3482 6.20586 18.5357 6.3934L25.6068 13.4645Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M15 8.51472L23.4853 17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+<defs>
+<linearGradient id="SvgjsLinearGradient1011" x1="32" y1="0" x2="0" y2="32" gradientUnits="userSpaceOnUse">
+<stop stop-color="#E66F49"></stop>
+<stop offset="1" stop-color="#1D567F"></stop>
+</linearGradient>
+</defs>
+</svg><style>@media (prefers-color-scheme: light) { :root { filter: none; } }
+@media (prefers-color-scheme: dark) { :root { filter: none; } }
+</style></svg>

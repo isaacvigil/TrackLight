@@ -22,6 +22,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "TrackLight",
   description: "Effortless job application tracking",
+  appleWebApp: {
+    title: "TrackLight",
+  },
 };
 
 export default function RootLayout({
