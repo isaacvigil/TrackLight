@@ -16,7 +16,7 @@
   --accent: 0 0% 96%;
   --accent-foreground: 0 0% 9%;
   --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
+  --destructive-foreground: 0 0% 4%;
   --success: 142 76% 36%;
   --success-foreground: 0 0% 98%;
   --border: 0 0% 90%;
@@ -135,7 +135,8 @@ body {
 }
 
 .cl-pricingTableCardFeatures {
-  background-color: rgba(10, 10, 10, 0.4) !important;
+  background: unset !important;
+  background-color: unset !important;
 }
 
 /* Style checkmark icons in pricing table with success green color */
@@ -143,4 +144,29 @@ body {
 .cl-pricingTableCardFeature svg,
 .cl-pricingTableCardFeaturesList svg {
   color: hsl(var(--success)) !important;
+}
+
+/* Remove black background from empty Clerk internal elements */
+.cl-internal-19brebv {
+  background-color: unset !important;
+  background: unset !important;
+}
+
+/* Remove borders from pricing table card features section */
+.cl-pricingTableCardFeatures {
+  border-top-width: 0px !important;
+  border-top-color: rgba(0, 0, 0, 0) !important;
+  border-top-style: none !important;
+  border-image: none !important;
+  border-width: 0px !important;
+  border-color: rgba(0, 0, 0, 0) !important;
+  border-style: none !important;
+}
+
+/* Remove top border from pricing table card footer */
+.cl-pricingTableCardFooter {
+  border-top-width: 0px !important;
+  border-top-color: rgba(0, 0, 0, 0) !important;
+  border-top-style: none !important;
+  border-image: none !important;
 }

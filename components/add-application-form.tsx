@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { createJobApplication } from "@/app/actions/job-applications";
 import Link from "next/link";
 import { AlertCircle, Search, X, Info, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface AddApplicationFormProps {
   searchQuery: string;
@@ -34,6 +35,14 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
 
     try {
       const result = await createJobApplication(input);
+      
+      // Check if this is a duplicate application
+      if (result.isDuplicate) {
+        toast.warning("Duplicate Application", {
+          description: "You've already applied to this job. A new entry has been added anyway.",
+          duration: 5000,
+        });
+      }
       
       // Check if extraction failed (placeholder values were used)
       // Only show warning if BOTH company and role couldn't be extracted
@@ -121,9 +130,10 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                 variant="ghost"
                 className="absolute right-1 top-1 h-10 rounded-3xl"
               >
-                Add
-                {isSubmitting && (
-                  <Loader2 className="ml-2 size-4 animate-spin" />
+                {isSubmitting ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  "Add"
                 )}
               </Button>
             </div>
@@ -135,9 +145,9 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
           <div className="flex items-start gap-2">
             <AlertCircle className="size-4 text-destructive mt-0.5 shrink-0" />
             <div className="flex-1">
-              <p className="text-destructive font-medium">{error}</p>
+              <p className="text-destructive font-medium text-base">{error}</p>
               {isLimitError && (
-                <Link href="/pricing" className="text-primary hover:underline mt-1 inline-block">
+                <Link href="/pricing" className="text-primary hover:underline mt-1 inline-block text-base">
                   View pricing plans →
                 </Link>
               )}

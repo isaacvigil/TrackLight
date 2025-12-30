@@ -413,12 +413,26 @@ export async function createJobApplication(input: CreateJobApplicationInput) {
   // Normalize LinkedIn URLs to cleaner format
   const normalizedUrl = normalizeLinkedInUrl(validatedData.jobUrl);
 
+  // Check if this URL already exists for the user
+  const existingApplications = await db
+    .select()
+    .from(jobApplications)
+    .where(
+      and(
+        eq(jobApplications.userId, userId),
+        eq(jobApplications.jobUrl, normalizedUrl)
+      )
+    );
+
+  const isDuplicate = existingApplications.length > 0;
+
   // Extract job data using AI
   const extractedData = await extractJobDataFromUrl(normalizedUrl);
 
   // ✅ CORRECT: Insert with userId from authenticated user and AI-extracted data
   // Convert empty strings to null for optional database fields
   // Default status is "applied" because users paste job links after applying
+  // Still insert even if it's a duplicate - user may have multiple applications to the same job
   const result = await db
     .insert(jobApplications)
     .values({
@@ -436,7 +450,12 @@ export async function createJobApplication(input: CreateJobApplicationInput) {
     .returning();
 
   revalidatePath("/track");
-  return result[0];
+  
+  // Return the result with duplicate flag
+  return {
+    ...result[0],
+    isDuplicate,
+  };
 }
 
 /**

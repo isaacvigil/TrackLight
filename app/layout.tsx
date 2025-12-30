@@ -11,6 +11,7 @@ import { ThemedClerkProvider } from "@/components/themed-clerk-provider";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/header";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -73,6 +74,7 @@ export default function RootLayout({
                 TrackLight © {new Date().getFullYear()}
               </div>
             </footer>
+            <Toaster position="top-right" />
           </ThemedClerkProvider>
         </ThemeProvider>
       </body>
