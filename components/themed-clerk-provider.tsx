@@ -29,6 +29,22 @@ export function ThemedClerkProvider({
           colorText: "hsl(var(--foreground))",
           fontFamily: "var(--font-inter)",
           borderRadius: "0.5rem",
+          fontSize: "16px",
+        },
+        elements: {
+          userButtonPopoverActionButton: {
+            fontSize: "16px",
+          },
+          userButtonPopoverActionButtonIcon: {
+            width: "20px",
+            height: "20px",
+          },
+          userPreviewSecondaryIdentifier: {
+            fontSize: "16px",
+          },
+          userPreviewMainIdentifier: {
+            fontSize: "16px",
+          },
         },
       }
     : {
@@ -40,6 +56,22 @@ export function ThemedClerkProvider({
           colorText: "hsl(var(--foreground))",
           fontFamily: "var(--font-inter)",
           borderRadius: "0.5rem",
+          fontSize: "16px",
+        },
+        elements: {
+          userButtonPopoverActionButton: {
+            fontSize: "16px",
+          },
+          userButtonPopoverActionButtonIcon: {
+            width: "20px",
+            height: "20px",
+          },
+          userPreviewSecondaryIdentifier: {
+            fontSize: "16px",
+          },
+          userPreviewMainIdentifier: {
+            fontSize: "16px",
+          },
         },
       }
 

@@ -170,3 +170,40 @@ body {
   border-top-style: none !important;
   border-image: none !important;
 }
+
+/* Clerk User Button Popover Customization */
+/* Increase font size for user button popover action buttons */
+.cl-userButtonPopoverActionButton,
+.cl-userButtonPopoverActionButton.cl-button,
+button.cl-userButtonPopoverActionButton,
+button[class*="cl-userButtonPopoverActionButton"],
+button[class*="cl-internal-1pgt8so"] {
+  font-size: 16px !important;
+}
+
+/* Increase font size for user preview secondary identifier (email) */
+.cl-userPreviewSecondaryIdentifier,
+span.cl-userPreviewSecondaryIdentifier,
+span[class*="cl-userPreviewSecondaryIdentifier"],
+span[class*="cl-internal-9l5sby"],
+span[class*="cl-internal-1u8qly9"] {
+  font-size: 16px !important;
+}
+
+/* Increase font size for user preview main identifier (name) */
+.cl-userPreviewMainIdentifierText,
+span.cl-userPreviewMainIdentifierText,
+span[class*="cl-userPreviewMainIdentifierText"],
+span[class*="cl-internal-qnmbzh"],
+span[class*="cl-internal-uwpk69"] {
+  font-size: 16px !important;
+}
+
+/* Increase size of SVG icons in user button popover (manage account, sign out, etc.) */
+.cl-userButtonPopoverActionButtonIcon,
+svg.cl-userButtonPopoverActionButtonIcon,
+svg[class*="cl-userButtonPopoverActionButtonIcon"],
+svg[class*="cl-internal-kjkbhu"] {
+  width: 20px !important;
+  height: 20px !important;
+}
