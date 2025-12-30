@@ -18,16 +18,40 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
   const [isSearchMode, setIsSearchMode] = useState(false);
+  const [urlError, setUrlError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  function validateUrl(url: string): boolean {
+    if (!url.trim()) {
+      setUrlError("Please enter a URL");
+      return false;
+    }
+    
+    try {
+      new URL(url);
+      setUrlError(null);
+      return true;
+    } catch {
+      setUrlError("Please enter a valid URL");
+      return false;
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    
+    const formData = new FormData(e.currentTarget);
+    const jobUrl = formData.get("jobUrl") as string;
+    
+    // Validate URL before submitting
+    if (!validateUrl(jobUrl)) {
+      return;
+    }
+    
     setIsSubmitting(true);
     setError(null);
     setWarning(null);
-
-    const formData = new FormData(e.currentTarget);
     
     const input = {
       jobUrl: formData.get("jobUrl") as string,
@@ -52,6 +76,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
       
       // Reset form on success using ref
       formRef.current?.reset();
+      setUrlError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add application");
     } finally {
@@ -87,7 +112,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
               type="button"
               variant="outline"
               onClick={toggleSearchMode}
-              className="h-12 w-12 rounded-3xl p-0 flex items-center justify-center shrink-0 dark:bg-input/30"
+              className="h-12 w-12 rounded-3xl p-0 flex items-center justify-center shrink-0 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50 border-border/50"
             >
               <X className="size-5" />
               <span className="sr-only">Close search</span>
@@ -99,20 +124,20 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                 placeholder="Search by company, role, location, status..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-4 pr-4 rounded-3xl h-12"
+                className="pl-4 pr-4 rounded-3xl h-12 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50 border-border/50"
               />
             </div>
           </div>
         ) : (
           // Add mode
-          <form ref={formRef} onSubmit={handleSubmit}>
+          <form ref={formRef} onSubmit={handleSubmit} noValidate>
             <div className="flex gap-2">
               <Button 
                 type="button"
                 variant="outline"
                 disabled={isSubmitting}
                 onClick={toggleSearchMode}
-                className="h-12 w-12 rounded-3xl p-0 flex items-center justify-center shrink-0 dark:bg-input/30"
+                className="h-12 w-12 rounded-3xl p-0 flex items-center justify-center shrink-0 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50 border-border/50"
               >
                 <Search className="size-5" />
                 <span className="sr-only">Search</span>
@@ -122,9 +147,13 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                   name="jobUrl"
                   type="url"
                   placeholder="Paste job post link here..."
-                  required
                   disabled={isSubmitting}
-                  className="pl-4 pr-20 rounded-3xl h-12"
+                  onChange={(e) => {
+                    if (urlError) {
+                      validateUrl(e.target.value);
+                    }
+                  }}
+                  className="pl-4 pr-20 rounded-3xl h-12 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50 border-border/50"
                 />
                 <Button 
                   type="submit" 
@@ -138,6 +167,9 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                     "Add"
                   )}
                 </Button>
+                {urlError && !isSubmitting && (
+                  <p className="text-sm text-destructive absolute -bottom-6 left-0 right-0 text-center">{urlError}</p>
+                )}
               </div>
             </div>
           </form>
@@ -170,7 +202,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
       </div>
 
       {/* Mobile: floating at bottom */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 border-t border-border/40">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
         <div className="container mx-auto px-4 py-3 space-y-2">
           {isSearchMode ? (
             // Search mode
@@ -179,7 +211,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                 type="button"
                 variant="outline"
                 onClick={toggleSearchMode}
-                className="h-12 w-12 rounded-3xl p-0 flex items-center justify-center shrink-0 dark:bg-input/30"
+                className="h-12 w-12 rounded-3xl p-0 flex items-center justify-center shrink-0 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50 border-border/50"
               >
                 <X className="size-5" />
                 <span className="sr-only">Close search</span>
@@ -191,20 +223,20 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                   placeholder="Search by company, role, location, status..."
                   value={searchQuery}
                   onChange={(e) => onSearchChange(e.target.value)}
-                  className="pl-4 pr-4 rounded-3xl h-12"
+                  className="pl-4 pr-4 rounded-3xl h-12 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50 border-border/50"
                 />
               </div>
             </div>
           ) : (
             // Add mode
-            <form ref={formRef} onSubmit={handleSubmit}>
+            <form ref={formRef} onSubmit={handleSubmit} noValidate>
               <div className="flex gap-2">
                 <Button 
                   type="button"
                   variant="outline"
                   disabled={isSubmitting}
                   onClick={toggleSearchMode}
-                  className="h-12 w-12 rounded-3xl p-0 flex items-center justify-center shrink-0 dark:bg-input/30"
+                  className="h-12 w-12 rounded-3xl p-0 flex items-center justify-center shrink-0 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50 border-border/50"
                 >
                   <Search className="size-5" />
                   <span className="sr-only">Search</span>
@@ -214,9 +246,13 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                     name="jobUrl"
                     type="url"
                     placeholder="Paste job post link here..."
-                    required
                     disabled={isSubmitting}
-                    className="pl-4 pr-20 rounded-3xl h-12"
+                    onChange={(e) => {
+                      if (urlError) {
+                        validateUrl(e.target.value);
+                      }
+                    }}
+                    className="pl-4 pr-20 rounded-3xl h-12 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50 border-border/50"
                   />
                   <Button 
                     type="submit" 
@@ -230,6 +266,9 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                       "Add"
                     )}
                   </Button>
+                  {urlError && !isSubmitting && (
+                    <p className="text-sm text-destructive absolute -bottom-6 left-0 right-0 text-center">{urlError}</p>
+                  )}
                 </div>
               </div>
             </form>
