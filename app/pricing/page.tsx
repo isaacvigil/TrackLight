@@ -14,7 +14,7 @@ export default async function PricingPage() {
             Do more with TrackLight Pro
           </h1>
           <h2 className="text-2xl text-muted-foreground">
-           Save time with unlimited tracking, notes and more features coming soon!
+           Save time with unlimited tracking, notes and more coming soon!
           </h2>
         </div>
 

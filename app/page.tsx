@@ -14,7 +14,7 @@ export default async function Home() {
   }
   return (
     <div 
-      className="flex flex-1 items-start justify-center pt-[15vh] p-8"
+      className="flex flex-1 items-start justify-center pt-[15vh] pb-8 px-4 md:px-8"
     >
       <main className="w-full max-w-4xl space-y-16">
         <div className="space-y-8 text-center">
