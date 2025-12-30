@@ -21,7 +21,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "TrackLight",
-  description: "Task tracking made simple",
+  description: "Effortless job application tracking",
 };
 
 export default function RootLayout({
