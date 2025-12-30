@@ -168,7 +168,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                   )}
                 </Button>
                 {urlError && !isSubmitting && (
-                  <p className="text-sm text-destructive absolute -bottom-6 left-0 right-0 text-center">{urlError}</p>
+                  <p className="text-sm text-destructive absolute -top-6 left-0 right-0 text-left pl-4">{urlError}</p>
                 )}
               </div>
             </div>
@@ -267,7 +267,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                     )}
                   </Button>
                   {urlError && !isSubmitting && (
-                    <p className="text-sm text-destructive absolute -bottom-6 left-0 right-0 text-center">{urlError}</p>
+                    <p className="text-sm text-destructive absolute -top-6 left-0 right-0 text-left pl-4">{urlError}</p>
                   )}
                 </div>
               </div>
