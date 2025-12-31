@@ -19,7 +19,8 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
   const [warning, setWarning] = useState<string | null>(null);
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [urlError, setUrlError] = useState<string | null>(null);
-  const formRef = useRef<HTMLFormElement>(null);
+  const desktopFormRef = useRef<HTMLFormElement>(null);
+  const mobileFormRef = useRef<HTMLFormElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   function validateUrl(url: string): boolean {
@@ -74,8 +75,9 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
         setWarning("Could not extract job details from this page. Please update the company and role by clicking on them in the table.");
       }
       
-      // Reset form on success using ref
-      formRef.current?.reset();
+      // Reset both forms on success (desktop and mobile)
+      desktopFormRef.current?.reset();
+      mobileFormRef.current?.reset();
       setUrlError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add application");
@@ -130,7 +132,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
           </div>
         ) : (
           // Add mode
-          <form ref={formRef} onSubmit={handleSubmit} noValidate>
+          <form ref={desktopFormRef} onSubmit={handleSubmit} noValidate>
             <div className="flex gap-2">
               <Button 
                 type="button"
@@ -229,7 +231,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
             </div>
           ) : (
             // Add mode
-            <form ref={formRef} onSubmit={handleSubmit} noValidate>
+            <form ref={mobileFormRef} onSubmit={handleSubmit} noValidate>
               <div className="flex gap-2">
                 <Button 
                   type="button"
