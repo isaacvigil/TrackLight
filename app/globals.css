@@ -85,6 +85,19 @@ body {
 }
 
 /* Clerk Pricing Table Customization */
+/* Display pricing cards side-by-side on tablet and desktop */
+.cl-pricingTable {
+  display: grid !important;
+  grid-template-columns: 1fr !important; /* Mobile: single column */
+  gap: 1.5rem !important;
+}
+
+@media (min-width: 768px) {
+  .cl-pricingTable {
+    grid-template-columns: repeat(2, 1fr) !important; /* Tablet & Desktop: side-by-side */
+  }
+}
+
 /* Make "Billed annually" text larger */
 .cl-pricingTableCardPeriodToggle span[data-localization-key="billing.billedAnnually"],
 .cl-pricingTableCardPeriodToggle span[data-localization-key="billing.billedMonthly"] {

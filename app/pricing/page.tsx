@@ -7,19 +7,19 @@ export default async function PricingPage() {
 
   return (
     <div className="container mx-auto px-4 flex-1 flex items-start justify-center pt-[15vh]">
-      <div className="">
+      <div className="w-full max-w-3xl mx-auto">
         {/* Header Section */}
         <div className="text-center mb-12 space-y-2">
-          <h1 className="text-4xl font-medium tracking-tight text-foreground">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight text-foreground">
             Do more with TrackLight Pro
           </h1>
-          <h2 className="text-2xl text-muted-foreground">
-           Save time with unlimited tracking, notes and more coming soon!
+          <h2 className="text-2xl md:text-3xl lg:text-4xl text-muted-foreground">
+           with unlimited tracking and notes
           </h2>
         </div>
 
         {/* Pricing Table */}
-        <div className="mb-12 max-w-2xl mx-auto w-full" data-hide-subscribe={!userId}>
+        <div className="" data-hide-subscribe={!userId}>
           <PricingTable />
         </div>
 

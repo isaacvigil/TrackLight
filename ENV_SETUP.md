@@ -85,3 +85,6 @@ OPENAI_API_KEY=sk-proj-1234567890abcdefghijklmnopqrstuvwxyz
 - Test connection with `npm run db:studio`
 
 
+
+
+

@@ -14,15 +14,15 @@ export default async function Home() {
   }
   return (
     <div 
-      className="flex flex-1 items-start justify-center pt-[15vh] pb-8 px-4 md:px-8"
+      className="flex flex-1 items-start justify-center pt-[15vh] pb-8 px-4"
     >
       <main className="w-full max-w-4xl space-y-16">
         <div className="space-y-8 text-center">
           <div className="space-y-2">
-            <h1 className="text-4xl font-medium tracking-tight text-foreground">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight text-foreground">
               Effortless job application tracking
             </h1>
-            <h2 className="text-2xl text-muted-foreground">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl text-muted-foreground">
             TrackLight extracts details from job post links, so you can focus on applying
             </h2>
           </div>
