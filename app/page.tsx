@@ -23,8 +23,9 @@ export default async function Home() {
               Effortless job application tracking
             </h1>
             <h2 className="text-2xl md:text-3xl lg:text-4xl text-muted-foreground">
-            TrackLight extracts details from job post links, so you can focus on applying
+            TrackLight extracts details from job post links,
             </h2>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl text-muted-foreground">so you can focus on applying</h2>
           </div>
           <SignUpButton mode="modal" forceRedirectUrl="/track">
             <Button size="lg" className="text-lg rounded-full">
