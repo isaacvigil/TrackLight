@@ -518,7 +518,13 @@ export async function updateJobApplicationField(
 
   // If updating status, also update statusChangeDate and handle appliedDate
   if (field === "applicationStatus" && currentApplication) {
-    updateData.statusChangeDate = new Date();
+    // Special case: Changing FROM bookmarked TO applied should clear statusChangeDate
+    // because "Applied" is the starting point of tracking
+    if (currentApplication.applicationStatus === "bookmarked" && value === "applied") {
+      updateData.statusChangeDate = null;
+    } else {
+      updateData.statusChangeDate = new Date();
+    }
     
     // Debug: Log status change date update
     if (process.env.NODE_ENV === 'development') {
