@@ -51,12 +51,18 @@ export function EditableDateCell({
     }
   }
 
+  const fieldLabel = field === "appliedDate" ? "Applied date" : "Status change date";
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <div
+          role="button"
+          tabIndex={0}
+          aria-label={`Edit ${fieldLabel}: ${date ? format(date, "d MMM yyyy") : "not set"}`}
           className={cn(
             "h-10 w-full flex items-center px-2 text-base cursor-pointer hover:bg-muted/50 transition-colors",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0",
             !date && "text-muted-foreground",
             isSaving && "opacity-50 cursor-not-allowed"
           )}
@@ -65,8 +71,14 @@ export function EditableDateCell({
               setIsOpen(true);
             }
           }}
+          onKeyDown={(e) => {
+            if ((e.key === "Enter" || e.key === " ") && !isSaving) {
+              e.preventDefault();
+              setIsOpen(true);
+            }
+          }}
         >
-          <CalendarIcon className="mr-2 size-4 flex-shrink-0" />
+          <CalendarIcon className="mr-2 size-4 flex-shrink-0" aria-hidden="true" />
           <span>
             {date ? format(date, "d MMM yyyy") : "—"}
           </span>

@@ -49,6 +49,12 @@ export default function RootLayout({
           background: 'linear-gradient(135deg, rgba(10, 10, 10, 1) 0%, rgba(0, 24, 41, 1) 100%)',
         }}
       >
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:bg-background focus:p-4 focus:border focus:border-ring"
+        >
+          Skip to main content
+        </a>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
@@ -60,27 +66,35 @@ export default function RootLayout({
             <Header variant="transparent">
               <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <Logo />
-                <div className="flex items-center gap-1">
-                  <Button variant="ghost" asChild>
-                    <a href="/pricing">Pricing</a>
-                  </Button>
-                  <Button variant="ghost" asChild>
-                    <a href="mailto:contact@tracklight.app">Contact</a>
-                  </Button>
-                  <SignedOut>
-                    <SignInButton mode="modal" forceRedirectUrl="/track">
-                      <Button variant="ghost">Sign In</Button>
-                    </SignInButton>
-                  </SignedOut>
-                  <SignedIn>
-                    <UserButton />
-                  </SignedIn>
-                </div>
+                <nav aria-label="Main navigation">
+                  <ul className="flex items-center gap-1 list-none m-0 p-0">
+                    <li>
+                      <Button variant="ghost" asChild>
+                        <a href="/pricing">Pricing</a>
+                      </Button>
+                    </li>
+                    <li>
+                      <Button variant="ghost" asChild>
+                        <a href="mailto:contact@tracklight.app">Contact</a>
+                      </Button>
+                    </li>
+                    <li>
+                      <SignedOut>
+                        <SignInButton mode="modal" forceRedirectUrl="/track">
+                          <Button variant="ghost">Sign In</Button>
+                        </SignInButton>
+                      </SignedOut>
+                      <SignedIn>
+                        <UserButton />
+                      </SignedIn>
+                    </li>
+                  </ul>
+                </nav>
               </div>
             </Header>
-            <div className="flex-1 flex flex-col">
+            <main id="main-content" className="flex-1 flex flex-col">
               {children}
-            </div>
+            </main>
             <footer className="py-6">
               <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
                 TrackLight © {new Date().getFullYear()}

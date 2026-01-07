@@ -220,3 +220,41 @@ svg[class*="cl-internal-kjkbhu"] {
   width: 20px !important;
   height: 20px !important;
 }
+
+/* Accessibility Utilities */
+
+/* Screen reader only content - visually hidden but accessible to screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Show sr-only content on focus (e.g., skip links) */
+.focus\:not-sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: initial;
+  margin: initial;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Enhanced focus indicators for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Remove outline for mouse users, keep for keyboard users */
+*:focus:not(:focus-visible) {
+  outline: none;
+}

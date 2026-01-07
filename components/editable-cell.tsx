@@ -76,11 +76,23 @@ export function EditableCell({
     );
   }
 
+  const fieldLabel = field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1');
+
   return (
     <div
+      role="button"
+      tabIndex={0}
       onClick={() => setIsEditing(true)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          setIsEditing(true);
+        }
+      }}
+      aria-label={`Edit ${fieldLabel}: ${value || "empty"}`}
       className={cn(
         "cursor-pointer rounded-none px-2 py-1 hover:bg-muted/50 transition-colors h-10 flex items-center text-base",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0",
         className
       )}
     >

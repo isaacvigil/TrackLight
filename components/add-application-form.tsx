@@ -114,6 +114,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
               type="button"
               variant="outline"
               onClick={toggleSearchMode}
+              aria-label="Close search mode"
               className="h-12 w-12 rounded-3xl p-0 flex items-center justify-center shrink-0 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50 border-border/50"
             >
               <X className="size-5" />
@@ -126,6 +127,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                 placeholder="Search by company, role, location, status..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
+                aria-label="Search job applications"
                 className="pl-4 pr-4 rounded-3xl h-12 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50 border-border/50"
               />
             </div>
@@ -139,10 +141,11 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                 variant="outline"
                 disabled={isSubmitting}
                 onClick={toggleSearchMode}
+                aria-label="Toggle search mode"
                 className="h-12 w-12 rounded-3xl p-0 flex items-center justify-center shrink-0 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50 border-border/50"
               >
                 <Search className="size-5" />
-                <span className="sr-only">Search</span>
+                <span className="sr-only">Open search</span>
               </Button>
               <div className="relative flex-1">
                 <Input
@@ -150,6 +153,9 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                   type="url"
                   placeholder="Paste job post link here..."
                   disabled={isSubmitting}
+                  aria-label="Job posting URL"
+                  aria-invalid={urlError ? "true" : "false"}
+                  aria-describedby={urlError ? "desktop-url-error" : undefined}
                   onChange={(e) => {
                     if (urlError) {
                       validateUrl(e.target.value);
@@ -170,7 +176,12 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                   )}
                 </Button>
                 {urlError && !isSubmitting && (
-                  <p className="text-sm text-destructive absolute -top-6 left-0 right-0 text-left pl-4">{urlError}</p>
+                  <p 
+                    id="desktop-url-error" 
+                    className="text-sm text-destructive absolute -top-6 left-0 right-0 text-left pl-4"
+                  >
+                    {urlError}
+                  </p>
                 )}
               </div>
             </div>
@@ -213,6 +224,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                 type="button"
                 variant="outline"
                 onClick={toggleSearchMode}
+                aria-label="Close search mode"
                 className="h-12 w-12 rounded-3xl p-0 flex items-center justify-center shrink-0 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50 border-border/50"
               >
                 <X className="size-5" />
@@ -225,6 +237,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                   placeholder="Search by company, role, location, status..."
                   value={searchQuery}
                   onChange={(e) => onSearchChange(e.target.value)}
+                  aria-label="Search job applications"
                   className="pl-4 pr-4 rounded-3xl h-12 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50 border-border/50"
                 />
               </div>
@@ -238,10 +251,11 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                   variant="outline"
                   disabled={isSubmitting}
                   onClick={toggleSearchMode}
+                  aria-label="Toggle search mode"
                   className="h-12 w-12 rounded-3xl p-0 flex items-center justify-center shrink-0 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50 border-border/50"
                 >
                   <Search className="size-5" />
-                  <span className="sr-only">Search</span>
+                  <span className="sr-only">Open search</span>
                 </Button>
                 <div className="relative flex-1">
                   <Input
@@ -249,6 +263,9 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                     type="url"
                     placeholder="Paste job post link here..."
                     disabled={isSubmitting}
+                    aria-label="Job posting URL"
+                    aria-invalid={urlError ? "true" : "false"}
+                    aria-describedby={urlError ? "mobile-url-error" : undefined}
                     onChange={(e) => {
                       if (urlError) {
                         validateUrl(e.target.value);
@@ -269,7 +286,12 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                     )}
                   </Button>
                   {urlError && !isSubmitting && (
-                    <p className="text-sm text-destructive absolute -top-6 left-0 right-0 text-left pl-4">{urlError}</p>
+                    <p 
+                      id="mobile-url-error" 
+                      className="text-sm text-destructive absolute -top-6 left-0 right-0 text-left pl-4"
+                    >
+                      {urlError}
+                    </p>
                   )}
                 </div>
               </div>

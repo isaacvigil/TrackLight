@@ -82,6 +82,21 @@ This directory contains cursor rules that help guide development in this project
   - Upgrade prompts and CTAs
   - Plan-feature matrix and best practices
 
+### 8. Accessibility ([accessibility.mdc](mdc:.cursor/rules/accessibility.mdc))
+- **Applied To**: `*.tsx`, `*.ts` files
+- **Purpose**: WCAG 2.2 Level AA accessibility compliance guidelines for all UI components and pages
+- **Covers**:
+  - Text alternatives for non-text content (alt text, aria-labels)
+  - Color contrast requirements (4.5:1 for normal text, 3:1 for large text/UI)
+  - Keyboard accessibility (all functionality operable via keyboard)
+  - Focus indicators for interactive elements
+  - Form labels and error associations
+  - Semantic HTML structure (headings, lists, navigation)
+  - ARIA attributes and roles (when needed)
+  - Accessible tables, skip links, and screen reader support
+  - shadcn/ui built-in accessibility features
+  - Testing checklist and tools
+
 ## How to Use These Rules
 
 1. **Automatic Application**: Rules marked with `alwaysApply: true` are automatically included in all AI interactions
@@ -137,3 +152,15 @@ To create a new rule:
 - **ALWAYS** check access server-side in Server Actions before operations
 - Display pricing: `import { PricingTable } from '@clerk/nextjs'`
 - Reference [clerk-billing.mdc](mdc:.cursor/rules/clerk-billing.mdc) for detailed guidelines
+
+### Accessibility (WCAG 2.2)
+- **ALWAYS** provide alt text for images: `<img src="..." alt="descriptive text" />`
+- **ALWAYS** label icons: `<button aria-label="Delete"><Trash2 /></button>`
+- **ALWAYS** ensure 4.5:1 color contrast for text (use theme variables)
+- **ALWAYS** support keyboard navigation (use semantic HTML: `<button>` not `<div onClick>`)
+- **ALWAYS** provide visible focus indicators (built into shadcn/ui components)
+- **ALWAYS** associate labels with inputs: `<Label htmlFor="id">` + `<Input id="id">`
+- **ALWAYS** use semantic HTML: `<h1>`, `<nav>`, `<button>`, `<ul>`, etc.
+- Use shadcn/ui components (pre-accessible) over custom implementations
+- Test with keyboard (Tab, Enter, Escape) and screen readers
+- Reference [accessibility.mdc](mdc:.cursor/rules/accessibility.mdc) for detailed guidelines

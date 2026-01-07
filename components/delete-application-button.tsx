@@ -15,12 +15,20 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface DeleteApplicationButtonProps {
   applicationId: string;
+  company: string;
+  role: string;
 }
 
-export function DeleteApplicationButton({ applicationId }: DeleteApplicationButtonProps) {
+export function DeleteApplicationButton({ applicationId, company, role }: DeleteApplicationButtonProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   async function handleDelete() {
@@ -36,36 +44,47 @@ export function DeleteApplicationButton({ applicationId }: DeleteApplicationButt
   }
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="sm"
-          className="h-10 w-10 px-2"
-          disabled={isDeleting}
-        >
-          <Trash2 className="size-5" />
-        </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Delete Application?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete this job application.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
-            {isDeleting ? "Deleting..." : "Delete"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <TooltipProvider>
+      <AlertDialog>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="h-10 w-10 px-2"
+                disabled={isDeleting}
+                aria-label="Delete"
+              >
+                <Trash2 className="size-5" aria-hidden="true" />
+                <span className="sr-only">Delete</span>
+              </Button>
+            </AlertDialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Delete</p>
+          </TooltipContent>
+        </Tooltip>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete application for {role} at {company}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this job application.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </TooltipProvider>
   );
 }
 

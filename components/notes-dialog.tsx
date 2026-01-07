@@ -9,6 +9,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 import { SquarePen } from "lucide-react";
 import { updateJobApplicationNotes } from "@/app/actions/job-applications";
@@ -74,71 +80,101 @@ export function NotesDialog({ applicationId, role, companyName, initialNotes }: 
 
   if (!hasNotesAccess) {
     return (
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-10 w-10 px-2">
-            <SquarePen className="size-5" />
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Notes · Pro Feature</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="text-base text-muted-foreground mb-4">
-             Add important details, follow-up tasks, and interview notes for each application.
-            </p>
-            <Button asChild className="w-full">
-              <a href="/pricing">Upgrade to Pro</a>
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <TooltipProvider>
+        <Dialog>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-10 w-10 px-2" aria-label="Add notes (Pro feature)">
+                  <SquarePen className="size-5" aria-hidden="true" />
+                  <span className="sr-only">Add notes</span>
+                </Button>
+              </DialogTrigger>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Add notes (Pro)</p>
+            </TooltipContent>
+          </Tooltip>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Notes · Pro Feature</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-base text-muted-foreground mb-4">
+               Add important details, follow-up tasks, and interview notes for each application.
+              </p>
+              <Button asChild className="w-full">
+                <a href="/pricing">Upgrade to Pro</a>
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </TooltipProvider>
     );
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-10 w-10 px-2 relative">
-          <SquarePen className="size-5" />
-          {initialNotes && initialNotes.trim() && (
-            <span className="absolute top-0.5 right-0.5 size-2 bg-primary rounded-full" />
-          )}
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="!max-w-5xl w-full">
-        <DialogHeader>
-          <DialogTitle>Notes for {role} at {companyName}</DialogTitle>
-        </DialogHeader>
+    <TooltipProvider>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DialogTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-10 w-10 px-2 relative"
+                aria-label={initialNotes && initialNotes.trim() ? "Edit notes" : "Add notes"}
+              >
+                <SquarePen className="size-5" aria-hidden="true" />
+                {initialNotes && initialNotes.trim() && (
+                  <span 
+                    className="absolute top-0.5 right-0.5 size-2 bg-primary rounded-full"
+                    aria-hidden="true"
+                  />
+                )}
+                <span className="sr-only">
+                  {initialNotes && initialNotes.trim() ? "Edit notes" : "Add notes"}
+                </span>
+              </Button>
+            </DialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{initialNotes && initialNotes.trim() ? "Edit notes" : "Add notes"}</p>
+          </TooltipContent>
+        </Tooltip>
+        <DialogContent className="!max-w-5xl w-full">
+          <DialogHeader>
+            <DialogTitle>Notes for {role} at {companyName}</DialogTitle>
+          </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          {error && (
-            <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-              {error}
+          <div className="space-y-4 py-4">
+            {error && (
+              <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+                {error}
+              </div>
+            )}
+
+            <Textarea
+              placeholder="Add your notes here..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="min-h-[400px]"
+            />
+
+            <div className="flex items-center justify-end gap-3">
+              <Button
+                onClick={saveNotes}
+                disabled={!hasChanges || isSaving}
+                className="min-w-[120px]"
+                type="button"
+              >
+                {isSaving ? "Saving..." : "Save Notes"}
+              </Button>
             </div>
-          )}
-
-          <Textarea
-            placeholder="Add your notes here..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            className="min-h-[400px]"
-          />
-
-          <div className="flex items-center justify-end gap-3">
-            <Button
-              onClick={saveNotes}
-              disabled={!hasChanges || isSaving}
-              className="min-w-[120px]"
-              type="button"
-            >
-              {isSaving ? "Saving..." : "Save Notes"}
-            </Button>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </TooltipProvider>
   );
 }
 

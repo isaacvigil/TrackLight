@@ -9,6 +9,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Link2, ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DeleteApplicationButton } from "@/components/delete-application-button";
@@ -46,17 +52,37 @@ interface SortableHeaderProps {
 }
 
 function SortableHeader({ field, children, className, isActive, sortDirection, onSort }: SortableHeaderProps) {
+  const getSortLabel = () => {
+    const fieldName = field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1');
+    if (!isActive) return `Sort by ${fieldName}`;
+    return `Sort by ${fieldName} (currently ${sortDirection === "asc" ? "ascending" : "descending"})`;
+  };
+
   return (
-    <TableHead 
-      className={cn(
-        "cursor-pointer select-none hover:bg-muted/50 transition-colors",
-        className
-      )}
-      onClick={() => onSort(field)}
-    >
-      <div className="flex items-center gap-1">
+    <TableHead className={className}>
+      <button
+        onClick={() => onSort(field)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onSort(field);
+          }
+        }}
+        className={cn(
+          "cursor-pointer select-none hover:bg-muted/50 transition-colors w-full text-left flex items-center gap-1 p-2 -m-2 rounded",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        )}
+        aria-label={getSortLabel()}
+        aria-sort={
+          isActive 
+            ? sortDirection === "asc" 
+              ? "ascending" 
+              : "descending"
+            : "none"
+        }
+      >
         {children}
-        <div className="flex flex-col ml-1">
+        <div className="flex flex-col ml-1" aria-hidden="true">
           <ChevronUp 
             className={cn(
               "size-3 -mb-1",
@@ -74,7 +100,7 @@ function SortableHeader({ field, children, className, isActive, sortDirection, o
             )}
           />
         </div>
-      </div>
+      </button>
     </TableHead>
   );
 }
@@ -131,6 +157,9 @@ export function SortableApplicationsTable({ applications }: SortableApplications
 
   return (
     <Table>
+      <caption className="sr-only">
+        Job applications list with {applications.length} {applications.length === 1 ? 'application' : 'applications'}
+      </caption>
       <TableHeader className="mb-2">
         <TableRow>
           <SortableHeader field="company" className="w-[180px]" isActive={sortField === "company"} sortDirection={sortDirection} onSort={handleSort}>Company</SortableHeader>
@@ -218,24 +247,41 @@ export function SortableApplicationsTable({ applications }: SortableApplications
                     initialNotes={app.notes}
                   />
                   {app.jobUrl ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-10 w-10 px-2"
-                      asChild
-                    >
-                      <a
-                        href={app.jobUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Link2 className="size-6" />
-                      </a>
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-10 w-10 px-2"
+                            asChild
+                          >
+                            <a
+                              href={app.jobUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label="Open job posting"
+                            >
+                              <Link2 className="size-6" aria-hidden="true" />
+                              <span className="sr-only">
+                                Open job posting for {app.role} at {app.company}
+                              </span>
+                            </a>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Open job posting</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   ) : (
                     <div className="h-10 w-10" />
                   )}
-                  <DeleteApplicationButton applicationId={app.id} />
+                  <DeleteApplicationButton
+                    applicationId={app.id}
+                    company={app.company}
+                    role={app.role}
+                  />
                 </div>
               </TableCell>
             </TableRow>
