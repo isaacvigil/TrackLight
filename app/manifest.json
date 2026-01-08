@@ -1,6 +1,6 @@
 {
-  "name": "MyWebSite",
-  "short_name": "MySite",
+  "name": "TrackLight",
+  "short_name": "TrackLight",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
