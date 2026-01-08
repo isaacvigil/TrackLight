@@ -7,7 +7,6 @@ import { createJobApplication } from "@/app/actions/job-applications";
 import Link from "next/link";
 import { AlertCircle, Search, X, Info, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import posthog from "posthog-js";
 
 interface AddApplicationFormProps {
   searchQuery: string;
@@ -61,15 +60,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
 
     try {
       const result = await createJobApplication(input);
-
-      // Track successful job application added
-      posthog.capture('job_application_added', {
-        company: result.company,
-        role: result.role,
-        is_duplicate: result.isDuplicate,
-        extraction_successful: !result.company?.includes("(Unable to extract, input manually)"),
-      });
-
+      
       // Check if this is a duplicate application
       if (result.isDuplicate) {
         toast.warning("Duplicate Application", {
@@ -77,32 +68,19 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
           duration: 5000,
         });
       }
-
+      
       // Check if extraction failed (placeholder values were used)
       // Only show warning if BOTH company and role couldn't be extracted
       if (result.company?.includes("(Unable to extract, input manually)") && result.role?.includes("(Unable to extract, input manually)")) {
         setWarning("Could not extract job details from this page. Please update the company and role by clicking on them in the table.");
       }
-
+      
       // Reset both forms on success (desktop and mobile)
       desktopFormRef.current?.reset();
       mobileFormRef.current?.reset();
       setUrlError(null);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to add application";
-      setError(errorMessage);
-
-      // Track failed job application attempt
-      const isLimitReached = errorMessage.includes("reached your limit");
-      if (isLimitReached) {
-        posthog.capture('row_limit_reached', {
-          error_message: errorMessage,
-        });
-      } else {
-        posthog.capture('job_application_add_failed', {
-          error_message: errorMessage,
-        });
-      }
+      setError(err instanceof Error ? err.message : "Failed to add application");
     } finally {
       setIsSubmitting(false);
     }
@@ -122,17 +100,6 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
     if (isSearchMode) {
       // Clear search when exiting search mode
       onSearchChange("");
-    }
-  }
-
-  // Track search performed with debounce via handler
-  function handleSearchChange(value: string) {
-    onSearchChange(value);
-    // Track search only when there's meaningful input (3+ characters)
-    if (value.trim().length >= 3) {
-      posthog.capture('application_search_performed', {
-        search_query_length: value.trim().length,
-      });
     }
   }
 
@@ -159,7 +126,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                 type="text"
                 placeholder="Search by company, role, location, status..."
                 value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
+                onChange={(e) => onSearchChange(e.target.value)}
                 aria-label="Search job applications"
                 className="pl-4 pr-4 rounded-3xl h-12 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50 border-border/50"
               />
@@ -269,7 +236,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                   type="text"
                   placeholder="Search by company, role, location, status..."
                   value={searchQuery}
-                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onChange={(e) => onSearchChange(e.target.value)}
                   aria-label="Search job applications"
                   className="pl-4 pr-4 rounded-3xl h-12 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50 border-border/50"
                 />

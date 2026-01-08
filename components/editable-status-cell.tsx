@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { updateJobApplicationField } from "@/app/actions/job-applications";
 import { cn } from "@/lib/utils";
+import posthog from "posthog-js";
 
 interface EditableStatusCellProps {
   applicationId: string;
@@ -38,9 +39,16 @@ export function EditableStatusCell({ applicationId, value }: EditableStatusCellP
   async function handleChange(newValue: string) {
     if (newValue === value) return;
 
+    const previousStatus = value;
     setIsSaving(true);
     try {
       await updateJobApplicationField(applicationId, "applicationStatus", newValue);
+
+      // Track status change
+      posthog.capture('application_status_changed', {
+        previous_status: previousStatus,
+        new_status: newValue,
+      });
     } catch (error) {
       console.error("Failed to update status:", error);
       alert("Failed to update status. Please try again.");

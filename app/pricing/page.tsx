@@ -1,9 +1,20 @@
-import { PricingTable, SignUpButton } from '@clerk/nextjs'
+import { PricingTable } from '@clerk/nextjs'
 import { auth } from '@clerk/nextjs/server'
-import { Button } from '@/components/ui/button'
+import { getPostHogClient } from '@/lib/posthog-server'
+import { PricingSignUpCta } from './pricing-signup-cta'
 
 export default async function PricingPage() {
   const { userId } = await auth()
+
+  // Track pricing page view server-side
+  const posthog = getPostHogClient()
+  posthog.capture({
+    distinctId: userId || 'anonymous',
+    event: 'pricing_page_viewed',
+    properties: {
+      is_authenticated: !!userId,
+    }
+  })
 
   return (
     <div className="container mx-auto px-4 flex-1 flex items-start justify-center pt-[15vh]">
@@ -24,21 +35,13 @@ export default async function PricingPage() {
         </div>
 
         {/* Sign Up CTA for non-logged-in users */}
-        {!userId && (
-          <div className="text-center mt-8">
-            <SignUpButton mode="modal">
-              <Button size="lg" className="text-lg rounded-full">
-                Create Account for Free
-              </Button>
-            </SignUpButton>
-          </div>
-        )}
+        {!userId && <PricingSignUpCta />}
 
         {/* Contact Section */}
         <div className="text-center mt-8 text-lg">
           <span className="text-muted-foreground">Questions? </span>
-          <a 
-            href="mailto:contact@tracklight.app" 
+          <a
+            href="mailto:contact@tracklight.app"
             className="text-primary hover:underline font-medium"
           >
             Contact us

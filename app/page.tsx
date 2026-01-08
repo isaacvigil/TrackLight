@@ -1,19 +1,17 @@
-import { Button } from "@/components/ui/button";
-import { SignUpButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { PreviewApplicationsTable } from "@/components/preview-applications-table";
+import { HomepageSignUpCta } from "@/components/homepage-signup-cta";
 import Image from "next/image";
 
 export default async function Home() {
   // Redirect authenticated users to the track page
   const { userId } = await auth();
-  
+
   if (userId) {
     redirect("/track");
   }
   return (
-    <div 
+    <div
       className="flex flex-1 items-start justify-center pt-[15vh] pb-8 px-4"
     >
       <main className="w-full max-w-4xl space-y-16">
@@ -27,11 +25,7 @@ export default async function Home() {
             </h2>
             <h2 className="text-2xl md:text-3xl lg:text-4xl text-muted-foreground">so you can focus on applying</h2>
           </div>
-          <SignUpButton mode="modal" forceRedirectUrl="/track">
-            <Button size="lg" className="text-lg rounded-full">
-              Create Account for Free
-            </Button>
-          </SignUpButton>
+          <HomepageSignUpCta />
         </div>
 
         <div className="flex justify-center">

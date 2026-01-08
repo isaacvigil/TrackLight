@@ -12,7 +12,6 @@ import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/sonner";
-import { PostHogIdentify } from "@/components/posthog-identify";
 import "./globals.css";
 
 const inter = Inter({
@@ -64,7 +63,6 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ThemedClerkProvider>
-            <PostHogIdentify />
             <Header variant="transparent">
               <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <Logo />

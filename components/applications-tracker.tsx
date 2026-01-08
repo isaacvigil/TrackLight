@@ -8,6 +8,7 @@ import { SortableApplicationsTable } from "@/components/sortable-applications-ta
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { JobApplication } from "@/db/schema";
+import posthog from "posthog-js";
 
 interface ApplicationsTrackerProps {
   applications: JobApplication[];
@@ -73,7 +74,18 @@ export function ApplicationsTracker({
                 {currentCount} of {hasUnlimitedRows ? "unlimited" : maxRows} tracked
               </span>
               {isFreeUser && (
-                <Button asChild variant="outline" size="sm">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    posthog.capture('upgrade_cta_clicked', {
+                      location: 'tracker_header',
+                      current_count: currentCount,
+                      max_rows: maxRows,
+                    });
+                  }}
+                >
                   <Link href="/pricing">Upgrade to Pro</Link>
                 </Button>
               )}

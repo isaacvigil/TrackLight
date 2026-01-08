@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { SquarePen } from "lucide-react";
 import { updateJobApplicationNotes } from "@/app/actions/job-applications";
 import { useAuth } from "@clerk/nextjs";
+import posthog from "posthog-js";
 
 interface NotesDialogProps {
   applicationId: string;
@@ -47,6 +48,14 @@ export function NotesDialog({ applicationId, role, companyName, initialNotes }: 
         id: applicationId,
         notes: notes.trim() || null,
       });
+
+      // Track notes saved event
+      posthog.capture('notes_saved', {
+        company: companyName,
+        role,
+        notes_length: notes.trim().length,
+      });
+
       // Close the modal after successful save
       setOpen(false);
     } catch (err) {
@@ -78,10 +87,20 @@ export function NotesDialog({ applicationId, role, companyName, initialNotes }: 
     setOpen(newOpen);
   }
 
+  // Track when free user views the notes upgrade prompt
+  function handleUpgradeDialogOpen(isOpen: boolean) {
+    if (isOpen && !hasNotesAccess) {
+      posthog.capture('notes_upgrade_prompt_viewed', {
+        company: companyName,
+        role,
+      });
+    }
+  }
+
   if (!hasNotesAccess) {
     return (
       <TooltipProvider>
-        <Dialog>
+        <Dialog onOpenChange={handleUpgradeDialogOpen}>
           <Tooltip>
             <TooltipTrigger asChild>
               <DialogTrigger asChild>

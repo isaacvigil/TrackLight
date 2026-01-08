@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { deleteJobApplication } from "@/app/actions/job-applications";
+import posthog from "posthog-js";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +36,12 @@ export function DeleteApplicationButton({ applicationId, company, role }: Delete
     setIsDeleting(true);
     try {
       await deleteJobApplication(applicationId);
+
+      // Track successful deletion
+      posthog.capture('job_application_deleted', {
+        company,
+        role,
+      });
     } catch (error) {
       console.error("Failed to delete application:", error);
       alert(error instanceof Error ? error.message : "Failed to delete application. Please try again.");
