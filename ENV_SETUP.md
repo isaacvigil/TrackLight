@@ -45,6 +45,26 @@ OPENAI_API_KEY=sk-proj-...
 - Job creation will fail
 - Users cannot add jobs via URL paste
 
+### PostHog Analytics (Optional)
+
+```bash
+NEXT_PUBLIC_POSTHOG_KEY=phc_...
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+```
+
+**Purpose**: Tracks user behavior and analytics for product insights.
+
+**How to get it**: 
+1. Sign up at [PostHog](https://posthog.com)
+2. Create a new project
+3. Copy the Project API Key and Host URL
+4. Add to `.env.local`
+
+**What happens without it**: 
+- Analytics tracking will be disabled
+- App continues to function normally
+- A warning will appear in server logs: "PostHog API key not found. Analytics will be disabled."
+
 ## Example `.env.local` File
 
 ```bash
@@ -57,6 +77,10 @@ CLERK_SECRET_KEY=sk_test_abcdef1234567890
 
 # OpenAI
 OPENAI_API_KEY=sk-proj-1234567890abcdefghijklmnopqrstuvwxyz
+
+# PostHog (Optional)
+NEXT_PUBLIC_POSTHOG_KEY=phc_1234567890abcdefghijklmnopqrstuvwxyz
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
 ## Security Notes

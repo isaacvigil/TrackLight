@@ -6,15 +6,17 @@ import { PricingSignUpCta } from './pricing-signup-cta'
 export default async function PricingPage() {
   const { userId } = await auth()
 
-  // Track pricing page view server-side
+  // Track pricing page view server-side (only if PostHog is configured)
   const posthog = getPostHogClient()
-  posthog.capture({
-    distinctId: userId || 'anonymous',
-    event: 'pricing_page_viewed',
-    properties: {
-      is_authenticated: !!userId,
-    }
-  })
+  if (posthog) {
+    posthog.capture({
+      distinctId: userId || 'anonymous',
+      event: 'pricing_page_viewed',
+      properties: {
+        is_authenticated: !!userId,
+      }
+    })
+  }
 
   return (
     <div className="container mx-auto px-4 flex-1 flex items-start justify-center pt-[15vh]">
