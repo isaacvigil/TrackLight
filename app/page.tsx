@@ -21,9 +21,7 @@ export default async function Home() {
               Effortless job application tracking
             </h1>
             <h2 className="text-2xl md:text-3xl lg:text-4xl text-muted-foreground">
-            TrackLight extracts details from job post links,
-            </h2>
-            <h2 className="text-2xl md:text-3xl lg:text-4xl text-muted-foreground">so you can focus on applying</h2>
+            TrackLight extracts details from job post links, so you can save time and focus on getting hired</h2>
           </div>
           <HomepageSignUpCta />
         </div>

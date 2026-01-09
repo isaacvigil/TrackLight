@@ -69,18 +69,18 @@ export default function RootLayout({
               <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <Logo />
                 <nav aria-label="Main navigation">
-                  <ul className="flex items-center gap-1 list-none m-0 p-0">
-                    <li>
+                  <ul className="flex items-center gap-2 list-none m-0 p-0">
+                    <li className="flex items-center">
                       <Button variant="ghost" asChild>
                         <a href="/pricing">Pricing</a>
                       </Button>
                     </li>
-                    <li>
+                    <li className="flex items-center">
                       <Button variant="ghost" asChild>
                         <a href="mailto:contact@tracklight.app">Contact</a>
                       </Button>
                     </li>
-                    <li>
+                    <li className="flex items-center h-10">
                       <SignedOut>
                         <SignInButton mode="modal" forceRedirectUrl="/track">
                           <Button variant="ghost">Sign In</Button>
