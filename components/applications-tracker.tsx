@@ -48,7 +48,7 @@ export function ApplicationsTracker({
   }, [applications, searchQuery]);
 
   return (
-    <div className="space-y-8 pb-32 md:pb-0">
+    <div className="space-y-8 pb-32 md:pb-0 overflow-x-hidden">
       <div className="container mx-auto px-4">
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -99,21 +99,23 @@ export function ApplicationsTracker({
         </div>
       </div>
 
-      <div className="w-full overflow-x-auto">
+      {applications.length === 0 ? (
         <div className="container mx-auto px-4">
-          {applications.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground text-lg">
-              <p>No applications tracked yet</p>
-              <p className="flex items-center justify-center gap-1">
-                <span>Paste the job post link in the field on the top right</span>
-                <MoveUp className="size-4" aria-hidden="true" />
-              </p>
-            </div>
-          ) : (
-            <SortableApplicationsTable applications={filteredApplications} />
-          )}
+          <div className="text-center py-12 text-muted-foreground text-lg">
+            <p>No applications tracked yet</p>
+            <p className="flex items-center justify-center gap-1">
+              <span>Paste the job post link in the field on the top right</span>
+              <MoveUp className="size-4" aria-hidden="true" />
+            </p>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="w-full overflow-x-auto px-4">
+          <div className="container mx-auto">
+            <SortableApplicationsTable applications={filteredApplications} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
