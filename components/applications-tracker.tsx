@@ -48,7 +48,7 @@ export function ApplicationsTracker({
   }, [applications, searchQuery]);
 
   return (
-    <div className="space-y-8 pb-32 md:pb-0 overflow-x-hidden">
+    <div className="space-y-8 pb-32 md:pb-0 overflow-x-hidden pt-1">
       <div className="container mx-auto px-4">
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
