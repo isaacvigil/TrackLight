@@ -114,7 +114,25 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Production Deployment
+
+### Quick Start
+
+1. **Update Environment Variables**: Replace test keys with production keys
+   - Clerk: `pk_live_...` and `sk_live_...`
+   - Database: Production Neon database URL
+   - OpenAI: Same key works for both environments
+   
+2. **Configure Clerk Billing**: 
+   - Create plans: `free_user`, `pro`, `unemployed`
+   - Create features: `unlimited_rows`, `notes`
+   - Assign features to plans
+   
+3. **Deploy**: Use [Vercel](https://vercel.com) for easiest deployment
+
+📋 **Complete checklist**: See [PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md) for step-by-step production deployment guide.
+
+### Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
