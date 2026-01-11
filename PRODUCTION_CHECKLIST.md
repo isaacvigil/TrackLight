@@ -4,7 +4,7 @@ This document outlines everything you need to update and verify when deploying T
 
 ## ✅ Completed
 
-- [x] **Clerk Middleware Added** - `middleware.ts` created to handle authentication routing
+- [x] **Clerk Middleware Configured** - `proxy.ts` enhanced with authentication routing protection
 
 ## 🔑 Environment Variables to Update
 
@@ -174,7 +174,7 @@ Test these flows before going live:
 - [ ] `CLERK_SECRET_KEY` is kept secret (never exposed to client)
 - [ ] `OPENAI_API_KEY` is kept secret (never exposed to client)
 - [ ] Database URL uses SSL (`?sslmode=require`)
-- [ ] Clerk middleware is active (`middleware.ts` exists)
+- [ ] Clerk middleware is active (`proxy.ts` configured with route protection)
 - [ ] CORS/allowed origins configured in Clerk Dashboard
 
 ## 📈 Post-Deployment Monitoring
@@ -244,7 +244,7 @@ Your production deployment is successful when:
 
 ### Middleware redirect loops:
 - **Cause**: Public routes not configured properly
-- **Fix**: Verify `middleware.ts` matches the provided configuration
+- **Fix**: Verify `proxy.ts` has correct public route configuration
 
 ---
 
