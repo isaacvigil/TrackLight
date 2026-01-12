@@ -51,6 +51,11 @@ export function EditableDateCell({
     }
   }
 
+  // Check if date is more than 30 days old
+  const isOlderThan30Days = date ? 
+    (Date.now() - date.getTime()) > (30 * 24 * 60 * 60 * 1000) : 
+    false;
+
   const fieldLabel = field === "appliedDate" ? "Applied date" : "Status change date";
 
   return (
@@ -64,6 +69,7 @@ export function EditableDateCell({
             "h-10 w-full flex items-center px-2 text-base cursor-pointer hover:bg-muted/50 transition-colors",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0",
             !date && "text-muted-foreground",
+            isOlderThan30Days && "text-orange-600 dark:text-orange-400",
             isSaving && "opacity-50 cursor-not-allowed"
           )}
           onClick={(e) => {
@@ -78,7 +84,10 @@ export function EditableDateCell({
             }
           }}
         >
-          <CalendarIcon className="mr-2 size-4 flex-shrink-0" aria-hidden="true" />
+          <CalendarIcon className={cn(
+            "mr-2 size-4 flex-shrink-0",
+            isOlderThan30Days && "text-orange-600 dark:text-orange-400"
+          )} aria-hidden="true" />
           <span>
             {date ? format(date, "d MMM yyyy") : "—"}
           </span>
