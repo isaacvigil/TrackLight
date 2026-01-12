@@ -104,8 +104,7 @@ export function ApplicationsTracker({
           <div className="text-center py-12 text-muted-foreground text-lg">
             <p>No applications tracked yet</p>
             <p className="flex items-center justify-center gap-1">
-              <span>Paste the job post link in the field on the top right</span>
-              <MoveUp className="size-4" aria-hidden="true" />
+              <span>Paste the job post link in the field</span>
             </p>
           </div>
         </div>
