@@ -63,9 +63,9 @@ function SortableHeader({ field, children, className, isActive, sortDirection, o
   return (
     <TableHead className={cn(
       className,
-      isSticky && "sticky left-0 z-10"
+      isSticky && "sticky left-0 z-10 backdrop-blur-sm"
     )}
-    style={isSticky ? { backgroundColor: '#000E1F' } : undefined}>
+    style={isSticky ? { backgroundColor: 'rgba(0, 14, 31, 0.9)' } : undefined}>
       <button
         onClick={() => onSort(field)}
         onKeyDown={(e) => {
@@ -189,7 +189,7 @@ export function SortableApplicationsTable({ applications }: SortableApplications
         ) : (
           sortedApplications.map((app) => (
             <TableRow key={app.id}>
-              <TableCell className="font-medium p-0 sticky left-0 z-10" style={{ backgroundColor: '#000E1F' }}>
+              <TableCell className="font-medium p-0 sticky left-0 z-10 backdrop-blur-sm" style={{ backgroundColor: 'rgba(0, 14, 31, 0.9)' }}>
                 <EditableCell
                   applicationId={app.id}
                   field="company"
