@@ -12,12 +12,14 @@ interface EditableDateCellProps {
   applicationId: string;
   field: "appliedDate" | "statusChangeDate";
   value: Date | null;
+  applicationStatus: string;
 }
 
 export function EditableDateCell({ 
   applicationId, 
   field, 
-  value 
+  value,
+  applicationStatus
 }: EditableDateCellProps) {
   const [date, setDate] = useState<Date | undefined>(value || undefined);
   const [isOpen, setIsOpen] = useState(false);
@@ -51,10 +53,11 @@ export function EditableDateCell({
     }
   }
 
-  // Check if date is more than 30 days old
-  const isOlderThan30Days = date ? 
-    (Date.now() - date.getTime()) > (30 * 24 * 60 * 60 * 1000) : 
-    false;
+  // Check if date is more than 30 days old (but not for no_match or accepted statuses)
+  const isOlderThan30Days = date && 
+    applicationStatus !== "no_match" && 
+    applicationStatus !== "accepted" &&
+    (Date.now() - date.getTime()) > (30 * 24 * 60 * 60 * 1000);
 
   const fieldLabel = field === "appliedDate" ? "Applied date" : "Status change date";
 

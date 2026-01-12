@@ -46,9 +46,6 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
       <body
         className={`${inter.variable} antialiased font-sans min-h-screen flex flex-col overflow-x-hidden`}
-        style={{ 
-          background: 'linear-gradient(135deg, rgba(10, 10, 10, 1) 0%, rgba(0, 24, 41, 1) 100%)',
-        }}
       >
         <a
           href="#main-content"

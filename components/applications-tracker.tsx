@@ -109,8 +109,8 @@ export function ApplicationsTracker({
           </div>
         </div>
       ) : (
-        <div className="w-full overflow-x-auto px-4">
-          <div className="container mx-auto">
+        <div className="w-full overflow-x-auto">
+          <div className="container mx-auto px-4">
             <SortableApplicationsTable applications={filteredApplications} />
           </div>
         </div>
