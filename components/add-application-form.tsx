@@ -22,7 +22,8 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
   const [urlError, setUrlError] = useState<string | null>(null);
   const desktopFormRef = useRef<HTMLFormElement>(null);
   const mobileFormRef = useRef<HTMLFormElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const desktopSearchInputRef = useRef<HTMLInputElement>(null);
+  const mobileSearchInputRef = useRef<HTMLInputElement>(null);
 
   function validateUrl(url: string): boolean {
     if (!url.trim()) {
@@ -112,8 +113,14 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
 
   // Focus search input when entering search mode
   useEffect(() => {
-    if (isSearchMode && searchInputRef.current) {
-      searchInputRef.current.focus();
+    if (isSearchMode) {
+      // Focus the appropriate input based on screen size
+      // Try desktop first (it's visible on md and larger screens)
+      if (desktopSearchInputRef.current && window.innerWidth >= 768) {
+        desktopSearchInputRef.current.focus();
+      } else if (mobileSearchInputRef.current) {
+        mobileSearchInputRef.current.focus();
+      }
     }
   }, [isSearchMode]);
 
@@ -153,9 +160,9 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
               <X className="size-5" />
               <span className="sr-only">Close search</span>
             </Button>
-            <div className="relative flex-1">
+            <div className="relative flex-1 focus-within:outline-none">
               <Input
-                ref={searchInputRef}
+                ref={desktopSearchInputRef}
                 type="text"
                 placeholder="Search by company, role, location, status..."
                 value={searchQuery}
@@ -180,11 +187,11 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                 <Search className="size-5" />
                 <span className="sr-only">Open search</span>
               </Button>
-              <div className="relative flex-1">
+              <div className="relative flex-1 focus-within:outline-none">
                 <Input
                   name="jobUrl"
                   type="url"
-                  placeholder="Paste job post link here..."
+                  placeholder="Paste job post link here"
                   disabled={isSubmitting}
                   aria-label="Job posting URL"
                   aria-invalid={urlError ? "true" : "false"}
@@ -263,9 +270,9 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                 <X className="size-5" />
                 <span className="sr-only">Close search</span>
               </Button>
-              <div className="relative flex-1">
+              <div className="relative flex-1 focus-within:outline-none">
                 <Input
-                  ref={searchInputRef}
+                  ref={mobileSearchInputRef}
                   type="text"
                   placeholder="Search by company, role, location, status..."
                   value={searchQuery}
@@ -290,11 +297,11 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                   <Search className="size-5" />
                   <span className="sr-only">Open search</span>
                 </Button>
-                <div className="relative flex-1">
+                <div className="relative flex-1 focus-within:outline-none">
                   <Input
                     name="jobUrl"
                     type="url"
-                    placeholder="Paste job post link here..."
+                    placeholder="Paste job post link here"
                     disabled={isSubmitting}
                     aria-label="Job posting URL"
                     aria-invalid={urlError ? "true" : "false"}

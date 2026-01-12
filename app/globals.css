@@ -258,3 +258,11 @@ svg[class*="cl-internal-kjkbhu"] {
 *:focus:not(:focus-visible) {
   outline: none;
 }
+
+/* Remove outline from inputs that have their own focus styling via borders */
+input:focus-visible,
+input:focus,
+textarea:focus-visible,
+textarea:focus {
+  outline: none;
+}
