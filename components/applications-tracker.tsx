@@ -48,69 +48,73 @@ export function ApplicationsTracker({
   }, [applications, searchQuery]);
 
   return (
-    <div className="space-y-8 pb-32 md:pb-0">
-      <div className="container mx-auto px-4">
-        <div className="space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-2 shrink-0">
-              <h1 className="text-3xl font-medium tracking-tight">Job applications tracker</h1>
+    <div className="space-y-8 pb-32 md:pb-0 w-full max-w-full">
+      <div className="w-full max-w-full">
+        <div className="container mx-auto px-4">
+          <div className="space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-center gap-2 shrink-0 min-w-0">
+                <h1 className="text-3xl font-medium tracking-tight break-words">Job applications tracker</h1>
+              </div>
+              <div className="w-full md:flex-1 md:max-w-md">
+                <AddApplicationForm 
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                />
+              </div>
             </div>
-            <div className="w-full md:flex-1 md:max-w-md">
-              <AddApplicationForm 
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-              />
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className={cn(
-                "font-medium",
-                currentCount >= maxRows && "text-destructive",
-                currentCount >= maxRows * 0.8 && currentCount < maxRows && "text-orange-600 dark:text-orange-400",
-                currentCount < maxRows * 0.8 && "text-muted-foreground font-normal"
-              )}>
-                {currentCount} of {hasUnlimitedRows ? "unlimited" : maxRows} tracked
-              </span>
-              {isFreeUser && (
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    posthog.capture('upgrade_cta_clicked', {
-                      location: 'tracker_header',
-                      current_count: currentCount,
-                      max_rows: maxRows,
-                    });
-                  }}
-                >
-                  <Link href="/pricing">Upgrade to Pro</Link>
-                </Button>
+            
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-3">
+                <span className={cn(
+                  "font-medium",
+                  currentCount >= maxRows && "text-destructive",
+                  currentCount >= maxRows * 0.8 && currentCount < maxRows && "text-orange-600 dark:text-orange-400",
+                  currentCount < maxRows * 0.8 && "text-muted-foreground font-normal"
+                )}>
+                  {currentCount} of {hasUnlimitedRows ? "unlimited" : maxRows} tracked
+                </span>
+                {isFreeUser && (
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      posthog.capture('upgrade_cta_clicked', {
+                        location: 'tracker_header',
+                        current_count: currentCount,
+                        max_rows: maxRows,
+                      });
+                    }}
+                  >
+                    <Link href="/pricing">Upgrade to Pro</Link>
+                  </Button>
+                )}
+              </div>
+              {searchQuery && (
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  Showing {filteredApplications.length} of {applications.length} applications
+                </span>
               )}
             </div>
-            {searchQuery && (
-              <span className="text-sm text-muted-foreground">
-                Showing {filteredApplications.length} of {applications.length} applications
-              </span>
-            )}
           </div>
         </div>
       </div>
 
       {applications.length === 0 ? (
-        <div className="container mx-auto px-4">
-          <div className="text-center py-12 text-muted-foreground text-lg">
-            <p>No applications tracked yet</p>
-            <p className="flex items-center justify-center gap-1">
-              <span>Paste the job post link in the field</span>
-            </p>
+        <div className="w-full max-w-full">
+          <div className="container mx-auto px-4">
+            <div className="text-center py-12 text-muted-foreground text-lg">
+              <p>No applications tracked yet</p>
+              <p className="flex items-center justify-center gap-1">
+                <span>Paste the job post link in the field</span>
+              </p>
+            </div>
           </div>
         </div>
       ) : (
-        <div className="w-full overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-          <div className="container mx-auto">
+        <div className="w-full max-w-full">
+          <div className="overflow-x-auto px-4">
             <div className="min-w-[1290px]">
               <SortableApplicationsTable applications={filteredApplications} />
             </div>

@@ -69,38 +69,40 @@ export default function RootLayout({
           <ThemedClerkProvider>
             <PostHogIdentify />
             <Header variant="transparent">
-              <div className="container mx-auto flex h-16 items-center justify-between px-4">
-                <Logo />
-                <nav aria-label="Main navigation">
-                  <ul className="flex items-center gap-2 list-none m-0 p-0">
-                    <li className="flex items-center">
-                      <Button variant="ghost" asChild>
-                        <a href="/pricing">Pricing</a>
-                      </Button>
-                    </li>
-                    <li className="flex items-center">
-                      <Button variant="ghost" asChild>
-                        <a href="mailto:contact@tracklight.app">Contact</a>
-                      </Button>
-                    </li>
-                    <li className="flex items-center h-10">
-                      <SignedOut>
-                        <SignInButton mode="modal" forceRedirectUrl="/track">
-                          <Button variant="ghost">Sign In</Button>
-                        </SignInButton>
-                      </SignedOut>
-                      <SignedIn>
-                        <UserButton />
-                      </SignedIn>
-                    </li>
-                  </ul>
-                </nav>
+              <div className="w-full max-w-full">
+                <div className="container mx-auto flex h-16 items-center justify-between px-4">
+                  <Logo />
+                  <nav aria-label="Main navigation">
+                    <ul className="flex items-center gap-2 list-none m-0 p-0">
+                      <li className="flex items-center">
+                        <Button variant="ghost" asChild>
+                          <a href="/pricing">Pricing</a>
+                        </Button>
+                      </li>
+                      <li className="flex items-center">
+                        <Button variant="ghost" asChild>
+                          <a href="mailto:contact@tracklight.app">Contact</a>
+                        </Button>
+                      </li>
+                      <li className="flex items-center h-10">
+                        <SignedOut>
+                          <SignInButton mode="modal" forceRedirectUrl="/track">
+                            <Button variant="ghost">Sign In</Button>
+                          </SignInButton>
+                        </SignedOut>
+                        <SignedIn>
+                          <UserButton />
+                        </SignedIn>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
               </div>
             </Header>
             <main id="main-content" className="flex-1 flex flex-col">
               {children}
             </main>
-            <footer className="py-6">
+            <footer className="py-6 w-full max-w-full">
               <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
                 TrackLight © {new Date().getFullYear()}
               </div>
