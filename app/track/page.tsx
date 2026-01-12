@@ -39,7 +39,7 @@ export default async function TrackPage() {
   const isFreeUser = has({ plan: 'free_user' });
 
   return (
-    <div className="flex-1 py-8 overflow-x-hidden">
+    <div className="flex-1 py-8">
       <ApplicationsTracker 
         applications={applications}
         maxRows={maxRows}

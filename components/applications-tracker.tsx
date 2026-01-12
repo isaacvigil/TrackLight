@@ -48,7 +48,7 @@ export function ApplicationsTracker({
   }, [applications, searchQuery]);
 
   return (
-    <div className="space-y-8 pb-32 md:pb-0 overflow-x-hidden">
+    <div className="space-y-8 pb-32 md:pb-0">
       <div className="container mx-auto px-4">
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -109,9 +109,11 @@ export function ApplicationsTracker({
           </div>
         </div>
       ) : (
-        <div className="w-full overflow-x-auto">
-          <div className="container mx-auto px-4">
-            <SortableApplicationsTable applications={filteredApplications} />
+        <div className="w-full overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+          <div className="container mx-auto">
+            <div className="min-w-[1290px]">
+              <SortableApplicationsTable applications={filteredApplications} />
+            </div>
           </div>
         </div>
       )}
