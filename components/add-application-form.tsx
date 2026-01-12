@@ -191,7 +191,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                 <Input
                   name="jobUrl"
                   type="url"
-                  placeholder="Paste job post link here..."
+                  placeholder="Paste job post link here"
                   disabled={isSubmitting}
                   aria-label="Job posting URL"
                   aria-invalid={urlError ? "true" : "false"}
@@ -301,7 +301,7 @@ export function AddApplicationForm({ searchQuery, onSearchChange }: AddApplicati
                   <Input
                     name="jobUrl"
                     type="url"
-                    placeholder="Paste job post link here..."
+                    placeholder="Paste job post link here"
                     disabled={isSubmitting}
                     aria-label="Job posting URL"
                     aria-invalid={urlError ? "true" : "false"}
