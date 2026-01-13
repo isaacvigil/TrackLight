@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TiptapLink from '@tiptap/extension-link'
@@ -35,9 +35,6 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
   const [linkText, setLinkText] = useState('')
   const [showLinkInput, setShowLinkInput] = useState(false)
   const [hasSelection, setHasSelection] = useState(true)
-  
-  // Detect if we're on iOS Safari
-  const isIOS = typeof window !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent)
 
   const editor = useEditor({
     extensions: [
@@ -78,37 +75,7 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
     editorProps: {
       attributes: {
         class: 'tiptap-prose max-w-none focus:outline-none h-full px-4 py-3',
-        style: '-webkit-user-select: text !important; user-select: text !important; -webkit-touch-callout: default !important; touch-action: manipulation !important;',
         spellcheck: 'true',
-      },
-      // CRITICAL: Let ALL touch/mouse events pass through for iOS selection handles
-      handleDOMEvents: {
-        // Don't intercept touch events - let iOS handle them natively
-        touchstart: (view, event) => {
-          // On iOS, completely let the browser handle text selection
-          return false;
-        },
-        touchmove: (view, event) => {
-          // Don't prevent default - critical for selection handle dragging
-          return false;
-        },
-        touchend: (view, event) => {
-          return false;
-        },
-        touchcancel: () => false,
-        // Don't intercept selection-related events on iOS
-        selectstart: (view, event) => {
-          // Let native selection work
-          return false;
-        },
-        selectionchange: () => {
-          // Let native selection changes work
-          return false;
-        },
-        // Block only drag events (desktop)
-        dragstart: () => true,
-        drop: () => true,
-        dragover: () => true,
       },
     },
     immediatelyRender: false,
@@ -199,43 +166,12 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
     setLinkUrl('')
   }, [editor])
 
-  // Fix for iOS Safari - ensure touch events aren't blocked
-  useEffect(() => {
-    if (!editor) return;
-    
-    const editorElement = editor.view.dom;
-    
-    // Add passive event listeners to allow native selection
-    const handleTouchStart = (e: TouchEvent) => {
-      // Don't prevent default - allow iOS selection handles
-    };
-    
-    const handleTouchMove = (e: TouchEvent) => {
-      // Don't prevent default - allow iOS selection extension
-    };
-    
-    editorElement.addEventListener('touchstart', handleTouchStart, { passive: true });
-    editorElement.addEventListener('touchmove', handleTouchMove, { passive: true });
-    
-    return () => {
-      editorElement.removeEventListener('touchstart', handleTouchStart);
-      editorElement.removeEventListener('touchmove', handleTouchMove);
-    };
-  }, [editor]);
-
   if (!editor) {
     return null
   }
 
   return (
-    <div 
-      className={cn("tiptap-editor-container border rounded-lg overflow-hidden flex flex-col flex-1", className)}
-      style={{
-        isolation: 'isolate',
-        position: 'relative',
-        zIndex: 100,
-      } as React.CSSProperties}
-    >
+    <div className={cn("tiptap-editor-container border rounded-lg overflow-hidden flex flex-col flex-1", className)}>
       {/* Toolbar */}
       <div className="border-b bg-muted/50 px-2 py-1.5 flex items-center gap-1 flex-wrap flex-shrink-0">
         <Button
@@ -415,24 +351,8 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
       </div>
 
       {/* Editor */}
-      <div 
-        className="flex-1 overflow-y-auto flex flex-col"
-        style={{
-          WebkitUserSelect: 'text',
-          userSelect: 'text',
-          touchAction: 'manipulation',
-        } as React.CSSProperties}
-      >
-        <EditorContent 
-          editor={editor} 
-          className="flex-1"
-          style={{
-            WebkitUserSelect: 'text',
-            userSelect: 'text',
-            touchAction: 'manipulation',
-            WebkitTouchCallout: 'default',
-          } as React.CSSProperties}
-        />
+      <div className="flex-1 overflow-y-auto flex flex-col">
+        <EditorContent editor={editor} className="flex-1" />
       </div>
     </div>
   )
