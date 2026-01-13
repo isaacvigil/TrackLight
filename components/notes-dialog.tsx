@@ -180,12 +180,12 @@ export function NotesDialog({ applicationId, role, companyName, initialNotes }: 
             />
           </div>
 
-          <div className="flex items-center justify-between gap-3 flex-shrink-0">
+          <div className="flex items-center gap-3 flex-shrink-0">
             <TiptapHelpDialog />
             <Button
               onClick={saveNotes}
               disabled={!hasChanges || isSaving}
-              className="min-w-[120px]"
+              className="ml-auto min-w-[120px]"
               type="button"
             >
               {isSaving ? "Saving..." : "Save Notes"}

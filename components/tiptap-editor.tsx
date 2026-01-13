@@ -6,7 +6,7 @@ import StarterKit from '@tiptap/starter-kit'
 import TiptapLink from '@tiptap/extension-link'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
-import { Bold, Italic, List, ListOrdered, ListTodo, Link as LinkIcon, Undo, Redo, HelpCircle } from 'lucide-react'
+import { Bold, Italic, List, ListOrdered, ListTodo, Link as LinkIcon, Undo, Redo, Lightbulb } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -342,9 +342,9 @@ export function TiptapHelpDialog() {
           type="button"
           variant="ghost"
           size="sm"
-          className="text-muted-foreground hover:text-foreground"
+          className="hidden md:inline-flex text-muted-foreground hover:text-foreground"
         >
-          <HelpCircle className="h-4 w-4 mr-1.5" />
+          <Lightbulb className="h-4 w-4 mr-1.5" />
           Formatting tips & shortcuts
         </Button>
       </DialogTrigger>
