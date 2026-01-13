@@ -188,8 +188,8 @@ export function SortableApplicationsTable({ applications }: SortableApplications
           </TableRow>
         ) : (
           sortedApplications.map((app) => (
-            <TableRow key={app.id} className="group hover:bg-[hsl(0_0%_12%)] transition-colors">
-              <TableCell className="font-medium p-0 sticky left-0 z-10 backdrop-blur-xs bg-[rgba(0,14,31,0.8)] group-hover:!bg-[hsl(0_0%_12%)] transition-colors">
+            <TableRow key={app.id} className="group hover:bg-gray-800 transition-colors">
+              <TableCell className="font-medium p-0 sticky left-0 z-10 backdrop-blur-xs bg-[rgba(0,14,31,0.8)] group-hover:!bg-gray-800 transition-colors">
                 <EditableCell
                   applicationId={app.id}
                   field="company"
