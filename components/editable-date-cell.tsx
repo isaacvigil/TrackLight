@@ -69,7 +69,7 @@ export function EditableDateCell({
           tabIndex={0}
           aria-label={`Edit ${fieldLabel}: ${date ? format(date, "d MMM yyyy") : "not set"}`}
           className={cn(
-            "h-10 w-full flex items-center px-2 text-base cursor-pointer hover:bg-muted/50 transition-colors",
+            "h-10 w-full flex items-center px-2 text-base cursor-pointer",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0",
             !date && "text-muted-foreground",
             isOlderThan30Days && "text-orange-600 dark:text-orange-400",

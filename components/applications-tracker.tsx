@@ -120,6 +120,14 @@ export function ApplicationsTracker({
                 <SortableApplicationsTable applications={filteredApplications} />
               </div>
             </div>
+            {/* Mobile text */}
+            <p className="text-md text-muted-foreground mt-8 md:hidden">
+              Tap on a cell to edit
+            </p>
+            {/* Desktop text */}
+            <p className="text-md text-muted-foreground mt-8 hidden md:block">
+              Click on a cell to edit
+            </p>
           </div>
         </div>
       )}

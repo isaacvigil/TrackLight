@@ -63,7 +63,7 @@ export function EditableStatusCell({ applicationId, value }: EditableStatusCellP
     <Select value={value} onValueChange={handleChange} disabled={isSaving}>
       <SelectTrigger
         className={cn(
-          "h-10 w-full border-0 focus:ring-0 focus-visible:ring-0 text-base font-normal rounded-none !bg-transparent dark:!bg-transparent hover:!bg-muted/50 transition-colors",
+          "h-10 w-full border-0 focus:ring-0 focus-visible:ring-0 text-base font-normal rounded-none !bg-transparent dark:!bg-transparent",
           statusColors[value] || "text-primary"
         )}
       >

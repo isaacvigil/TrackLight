@@ -102,7 +102,7 @@ export default function RootLayout({
             <main id="main-content" className="flex-1 flex flex-col">
               {children}
             </main>
-            <footer className="py-6 w-full max-w-full">
+            <footer className="py-6">
               <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
                 TrackLight © {new Date().getFullYear()}
               </div>

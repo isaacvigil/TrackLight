@@ -75,7 +75,7 @@ function SortableHeader({ field, children, className, isActive, sortDirection, o
           }
         }}
         className={cn(
-          "cursor-pointer select-none hover:bg-muted/50 transition-colors w-full text-left flex items-center gap-1 p-2 -m-2 rounded",
+          "cursor-pointer select-none w-full text-left flex items-center gap-1 p-2 -m-2 rounded",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         )}
         aria-label={getSortLabel()}
@@ -188,8 +188,8 @@ export function SortableApplicationsTable({ applications }: SortableApplications
           </TableRow>
         ) : (
           sortedApplications.map((app) => (
-            <TableRow key={app.id}>
-              <TableCell className="font-medium p-0 sticky left-0 z-10 backdrop-blur-xs" style={{ backgroundColor: 'rgba(0, 14, 31, 0.8)' }}>
+            <TableRow key={app.id} className="group hover:bg-muted/50 transition-colors">
+              <TableCell className="font-medium p-0 sticky left-0 z-10 backdrop-blur-xs bg-[rgba(0,14,31,0.8)] group-hover:!bg-[rgb(19,27,35)] transition-colors">
                 <EditableCell
                   applicationId={app.id}
                   field="company"

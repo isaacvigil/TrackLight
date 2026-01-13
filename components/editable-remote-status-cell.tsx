@@ -73,7 +73,7 @@ export function EditableRemoteStatusCell({ applicationId, value }: EditableRemot
 
   return (
     <Select value={currentValue} onValueChange={handleChange} disabled={isSaving}>
-      <SelectTrigger className="h-10 w-full border-0 focus:ring-0 focus-visible:ring-0 text-base font-normal rounded-none !bg-transparent dark:!bg-transparent hover:!bg-muted/50 transition-colors">
+      <SelectTrigger className="h-10 w-full border-0 focus:ring-0 focus-visible:ring-0 text-base font-normal rounded-none !bg-transparent dark:!bg-transparent">
         <SelectValue>
           <span className="text-base font-normal">{currentLabel}</span>
         </SelectValue>

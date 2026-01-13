@@ -91,7 +91,7 @@ export function EditableCell({
       }}
       aria-label={`Edit ${fieldLabel}: ${value || "empty"}`}
       className={cn(
-        "cursor-pointer rounded-none px-2 py-1 hover:bg-muted/50 transition-colors h-10 flex items-center text-base",
+        "cursor-pointer rounded-none px-2 py-1 h-10 flex items-center text-base",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0",
         className
       )}
