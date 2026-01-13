@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 // Define public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
@@ -9,8 +10,21 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhooks(.*)', // Clerk webhooks
 ]);
 
+// Define routes that should redirect to home instead of showing sign-in modal
+const isTrackRoute = createRouteMatcher(['/track']);
+
 export default clerkMiddleware(async (auth, req) => {
-  // Protect all routes except public ones
+  // Handle /track route specially - redirect to home instead of showing sign-in modal
+  if (isTrackRoute(req)) {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.redirect(new URL('/', req.url));
+    }
+    // User is authenticated, let them through
+    return NextResponse.next();
+  }
+  
+  // Protect all other non-public routes with Clerk's sign-in modal
   if (!isPublicRoute(req)) {
     await auth.protect();
   }
