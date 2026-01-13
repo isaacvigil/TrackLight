@@ -76,9 +76,14 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
       attributes: {
         class: 'tiptap-prose max-w-none focus:outline-none h-full px-4 py-3',
         style: '-webkit-user-select: text; user-select: text; -webkit-touch-callout: default; touch-action: manipulation;',
+        spellcheck: 'true',
+        contenteditable: 'true',
       },
     },
     immediatelyRender: false,
+    editable: true,
+    enableInputRules: true,
+    enablePasteRules: true,
   })
 
   const openLinkInput = useCallback(() => {
@@ -348,8 +353,25 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
       </div>
 
       {/* Editor */}
-      <div className="flex-1 overflow-y-auto flex flex-col">
-        <EditorContent editor={editor} className="flex-1" />
+      <div 
+        className="flex-1 overflow-y-auto flex flex-col"
+        style={{
+          WebkitUserSelect: 'text',
+          userSelect: 'text',
+          WebkitTouchCallout: 'default',
+          touchAction: 'manipulation',
+        } as React.CSSProperties}
+      >
+        <EditorContent 
+          editor={editor} 
+          className="flex-1"
+          style={{
+            WebkitUserSelect: 'text',
+            userSelect: 'text',
+            WebkitTouchCallout: 'default',
+            touchAction: 'manipulation',
+          } as React.CSSProperties}
+        />
       </div>
     </div>
   )
