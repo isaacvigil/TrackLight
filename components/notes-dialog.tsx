@@ -166,6 +166,10 @@ export function NotesDialog({ applicationId, role, companyName, initialNotes }: 
           style={{
             WebkitUserSelect: 'text',
             userSelect: 'text',
+            // Disable backdrop blur on iOS to prevent stacking context issues
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none',
+            isolation: 'auto',
           } as React.CSSProperties}
         >
           <DialogHeader className="flex-shrink-0">
