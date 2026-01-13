@@ -37,11 +37,11 @@ function Calendar({
         weekday: "text-muted-foreground w-9 text-[0.8rem] font-normal",
         week: "flex w-full mt-1",
         day: cn(
-          "relative size-9 text-center text-sm flex items-center justify-center p-0"
+          "relative size-9 text-center text-sm flex items-center justify-center p-0 rounded-full"
         ),
         day_button: cn(
           buttonVariants({ variant: "ghost" }),
-          "size-9 p-0 font-normal hover:bg-accent hover:text-accent-foreground"
+          "size-9 p-0 font-normal hover:bg-accent hover:text-accent-foreground rounded-full"
         ),
         selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
         today: "bg-accent text-accent-foreground",
