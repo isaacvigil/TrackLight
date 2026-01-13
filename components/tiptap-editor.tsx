@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TiptapLink from '@tiptap/extension-link'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
+import { Extension } from '@tiptap/core'
 import { Bold, Italic, List, ListOrdered, ListTodo, Link as LinkIcon, Undo, Redo, Lightbulb } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,6 +23,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
+import { useModifierKey, useEnterKey } from '@/hooks/use-operating-system'
 
 interface TiptapEditorProps {
   content: string
@@ -35,6 +37,22 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
   const [linkText, setLinkText] = useState('')
   const [showLinkInput, setShowLinkInput] = useState(false)
   const [hasSelection, setHasSelection] = useState(true)
+
+  // Custom extension for Cmd/Ctrl + K shortcut to open link dialog
+  const LinkShortcut = Extension.create({
+    name: 'linkShortcut',
+    
+    addKeyboardShortcuts() {
+      return {
+        'Mod-k': () => {
+          // This will be handled by openLinkInput through a ref/callback
+          const event = new CustomEvent('open-link-input')
+          window.dispatchEvent(event)
+          return true
+        },
+      }
+    },
+  })
 
   const editor = useEditor({
     extensions: [
@@ -67,6 +85,7 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
       TaskItem.configure({
         nested: true,
       }),
+      LinkShortcut,
     ],
     content,
     onUpdate: ({ editor }) => {
@@ -106,6 +125,18 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
     
     setShowLinkInput(true)
   }, [editor])
+
+  // Listen for keyboard shortcut event
+  useEffect(() => {
+    const handleLinkShortcut = () => {
+      openLinkInput()
+    }
+
+    window.addEventListener('open-link-input', handleLinkShortcut)
+    return () => {
+      window.removeEventListener('open-link-input', handleLinkShortcut)
+    }
+  }, [openLinkInput])
 
   const applyLink = useCallback(() => {
     if (!editor) return
@@ -359,6 +390,9 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
 }
 
 export function TiptapHelpDialog() {
+  const modKey = useModifierKey()
+  const enterKey = useEnterKey()
+  
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -378,37 +412,64 @@ export function TiptapHelpDialog() {
         </DialogHeader>
         <div className="space-y-6 py-4">
               {/* Text Formatting */}
+              <div className="space-y-2 text-base">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">Bold</span>
+                    <div>
+                      <kbd className="px-2 py-1 bg-muted rounded text-sm">{modKey}</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-sm">B</kbd>
+                    </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">Italic</span>
+                  <div>
+                    <kbd className="px-2 py-1 bg-muted rounded text-sm">{modKey}</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-sm">I</kbd>
+                  </div>
+                </div>
+              </div>
+
+              {/* Paragraph Breaks */}
+              <div className="space-y-2 text-base">
+                <div className="flex items-center justify-between">
+                  <span>New paragraph</span>
+                  <div>
+                    <kbd className="px-2 py-1 bg-muted rounded text-sm">{enterKey}</kbd>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Line break</span>
+                  <div>
+                    <kbd className="px-2 py-1 bg-muted rounded text-sm">Shift</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-sm">{enterKey}</kbd>
+                  </div>
+                </div>
+              </div>
+
+              {/* Undo/Redo */}
               <div className="border-b border-border pb-6">
-                <h3 className="font-semibold mb-3">Text Formatting</h3>
-                <div className="space-y-3 text-base">
+                <div className="space-y-2 text-base">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">Bold</span>
-                    <kbd className="px-2 py-1 bg-muted rounded text-sm">Ctrl/Cmd + B</kbd>
+                    <span>Undo</span>
+                    <div>
+                      <kbd className="px-2 py-1 bg-muted rounded text-sm">{modKey}</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-sm">Z</kbd>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">Italic</span>
-                    <kbd className="px-2 py-1 bg-muted rounded text-sm">Ctrl/Cmd + I</kbd>
+                    <span>Redo</span>
+                    <div>
+                      <kbd className="px-2 py-1 bg-muted rounded text-sm">{modKey}</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-sm">Shift</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-sm">Z</kbd>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Lists */}
               <div className="border-b border-border pb-6">
-                <h3 className="font-semibold mb-3">Lists</h3>
                 <div className="space-y-3 text-base">
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-normal">Bullet list</span>
-                      <kbd className="px-2 py-1 bg-muted rounded text-sm">Ctrl/Cmd + Shift + 8</kbd>
-                    </div>
-                    <p className="text-muted-foreground text-base">
-                      Type <kbd className="px-1 py-0.5 bg-muted/50 rounded text-sm">-</kbd> or <kbd className="px-1 py-0.5 bg-muted/50 rounded text-sm">*</kbd> followed by space at line start
-                    </p>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
                       <span className="font-medium">Numbered list</span>
-                      <kbd className="px-2 py-1 bg-muted rounded text-sm">Ctrl/Cmd + Shift + 7</kbd>
+                      <div>
+                        <kbd className="px-2 py-1 bg-muted rounded text-sm">{modKey}</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-sm">Shift</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-sm">7</kbd>
+                      </div>
                     </div>
                     <p className="text-muted-foreground text-base">
                       Type <kbd className="px-1 py-0.5 bg-muted/50 rounded text-sm">1.</kbd> followed by space at line start
@@ -416,8 +477,22 @@ export function TiptapHelpDialog() {
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium">Bullet list</span>
+                      <div>
+                        <kbd className="px-2 py-1 bg-muted rounded text-sm">{modKey}</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-sm">Shift</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-sm">8</kbd>
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground text-base">
+                      Type <kbd className="px-1 py-0.5 bg-muted/50 rounded text-sm">-</kbd> or <kbd className="px-1 py-0.5 bg-muted/50 rounded text-sm">*</kbd> followed by space at line start
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
                       <span className="font-medium">Task list</span>
-                      <kbd className="px-2 py-1 bg-muted rounded text-sm">Ctrl/Cmd + Shift + 9</kbd>
+                      <div>
+                        <kbd className="px-2 py-1 bg-muted rounded text-sm">{modKey}</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-sm">Shift</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-sm">9</kbd>
+                      </div>
                     </div>
                     <p className="text-muted-foreground text-base">
                       Type <kbd className="px-1 py-0.5 bg-muted/50 rounded text-sm">[ ]</kbd> or <kbd className="px-1 py-0.5 bg-muted/50 rounded text-sm">[x]</kbd> followed by space at line start
@@ -427,49 +502,21 @@ export function TiptapHelpDialog() {
               </div>
 
               {/* Links */}
-              <div className="border-b border-border pb-6">
-                <h3 className="font-semibold mb-3">Links</h3>
-                <div className="space-y-2 text-base">
-                  <p className="text-muted-foreground">
-                    <span className="font-medium text-foreground">Toolbar:</span> Click the link button to add or edit links
-                  </p>
-                  <p className="text-muted-foreground">
-                    <span className="font-medium text-foreground">Auto-link:</span> Paste a URL (e.g., https://example.com) and it becomes clickable automatically
-                  </p>
-                  <p className="text-muted-foreground">
-                    <span className="font-medium text-foreground">Email links:</span> Enter an email address (e.g., recruiter@company.com) to create a mailto link that opens your email client
-                  </p>
-                </div>
-              </div>
-
-              {/* Paragraph Breaks */}
-              <div className="border-b border-border pb-6">
-                <h3 className="font-semibold mb-3">Paragraphs & Line Breaks</h3>
-                <div className="space-y-2 text-base">
-                  <p className="text-muted-foreground">
-                    <span className="font-medium text-foreground">New paragraph:</span> Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-sm text-foreground">Enter</kbd>
-                  </p>
-                  <p className="text-muted-foreground">
-                    <span className="font-medium text-foreground">Line break:</span> Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-sm text-foreground">Shift + Enter</kbd>
-                  </p>
-                </div>
-              </div>
-
-              {/* Undo/Redo */}
-              <div>
-                <h3 className="font-semibold mb-3">Undo & Redo</h3>
-                <div className="space-y-2 text-base">
+                <div className="space-y-3 text-base">
                   <div className="flex items-center justify-between">
-                    <span>Undo</span>
-                    <kbd className="px-2 py-1 bg-muted rounded text-sm">Ctrl/Cmd + Z</kbd>
+                    <span className="font-medium">Insert/Edit Link</span>
+                    <div>
+                      <kbd className="px-2 py-1 bg-muted rounded text-sm">{modKey}</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-sm">K</kbd>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span>Redo</span>
-                    <kbd className="px-2 py-1 bg-muted rounded text-sm">Ctrl/Cmd + Shift + Z</kbd>
-                  </div>
+                  <p className="text-muted-foreground">
+                    <span className="font-medium text-foreground">Auto-link</span><br/>Paste a URL (e.g., https://example.com) and it becomes clickable automatically
+                  </p>
+                  <p className="text-muted-foreground">
+                    <span className="font-medium text-foreground">Email links</span><br/>Enter an email address (e.g., recruiter@company.com) to create a mailto link that opens your email client
+                  </p>
                 </div>
               </div>
-            </div>
           </DialogContent>
         </Dialog>
   )
