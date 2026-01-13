@@ -75,7 +75,7 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
     editorProps: {
       attributes: {
         class: 'tiptap-prose max-w-none focus:outline-none h-full px-4 py-3',
-        style: '-webkit-user-select: text; user-select: text; -webkit-touch-callout: default; touch-action: manipulation;',
+        style: '-webkit-user-select: text; user-select: text; -webkit-touch-callout: default; touch-action: auto;',
         spellcheck: 'true',
         contenteditable: 'true',
       },
@@ -359,7 +359,7 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
           WebkitUserSelect: 'text',
           userSelect: 'text',
           WebkitTouchCallout: 'default',
-          touchAction: 'manipulation',
+          touchAction: 'auto',
         } as React.CSSProperties}
       >
         <EditorContent 
@@ -369,7 +369,7 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
             WebkitUserSelect: 'text',
             userSelect: 'text',
             WebkitTouchCallout: 'default',
-            touchAction: 'manipulation',
+            touchAction: 'auto',
           } as React.CSSProperties}
         />
       </div>

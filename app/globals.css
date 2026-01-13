@@ -321,13 +321,14 @@ textarea:focus {
   -webkit-user-select: text !important;
   user-select: text !important;
   -webkit-touch-callout: default !important;
-  touch-action: manipulation !important;
+  touch-action: auto !important;
 }
 
 /* Ensure EditorContent wrapper allows text selection */
 .tiptap-editor-container .ProseMirror-focused {
   -webkit-user-select: text !important;
   user-select: text !important;
+  touch-action: auto !important;
 }
 
 /* Fix for Safari iOS contenteditable */
@@ -335,7 +336,7 @@ textarea:focus {
   -webkit-user-select: text !important;
   user-select: text !important;
   -webkit-touch-callout: default !important;
-  touch-action: manipulation !important;
+  touch-action: auto !important;
 }
 
 /* Ensure all TipTap editor wrapper elements fill height */
@@ -541,12 +542,12 @@ ul[data-type="taskList"] ul[data-type="taskList"] {
 }
 
 /* Safari Mobile Text Selection Fix */
-/* Ensure text selection works properly on Safari mobile */
+/* CRITICAL: Use touch-action: auto for iOS text selection to work */
 .ProseMirror {
   -webkit-user-select: text !important;
   user-select: text !important;
   -webkit-touch-callout: default !important;
-  touch-action: manipulation !important;
+  touch-action: auto !important;
   cursor: text;
 }
 
@@ -554,6 +555,7 @@ ul[data-type="taskList"] ul[data-type="taskList"] {
   -webkit-user-select: text !important;
   user-select: text !important;
   -webkit-touch-callout: default !important;
+  touch-action: auto !important;
 }
 
 /* Ensure all text content is selectable */
@@ -566,29 +568,40 @@ ul[data-type="taskList"] ul[data-type="taskList"] {
 .ProseMirror a {
   -webkit-user-select: text !important;
   user-select: text !important;
+  touch-action: auto !important;
 }
 
 /* Prevent parent containers from blocking selection */
-.tiptap-editor-container,
+.tiptap-editor-container {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  touch-action: auto !important;
+}
+
 .tiptap-editor-container > * {
   -webkit-user-select: text;
   user-select: text;
+  touch-action: auto;
 }
 
 /* Allow text selection in editor on Safari iOS */
 @supports (-webkit-touch-callout: none) {
+  /* Safari iOS specific fixes */
   .ProseMirror {
     -webkit-user-select: text !important;
     user-select: text !important;
     -webkit-touch-callout: default !important;
-    touch-action: manipulation !important;
+    touch-action: auto !important;
     cursor: text !important;
+    /* Disable any custom touch handling */
+    pointer-events: auto !important;
   }
   
   .ProseMirror *:not(input):not(textarea):not(button) {
     -webkit-user-select: text !important;
     user-select: text !important;
     -webkit-touch-callout: default !important;
+    touch-action: auto !important;
   }
   
   /* Ensure paragraph content is selectable */
@@ -599,11 +612,20 @@ ul[data-type="taskList"] ul[data-type="taskList"] {
     -webkit-user-select: text !important;
     user-select: text !important;
     -webkit-touch-callout: default !important;
+    touch-action: auto !important;
   }
   
   /* Ensure dialog content doesn't interfere */
   [data-slot="dialog-content"] {
     -webkit-user-select: text;
     user-select: text;
+    touch-action: auto;
+  }
+  
+  /* Ensure editor wrapper doesn't block touches */
+  .tiptap-editor-container {
+    touch-action: auto !important;
+    -webkit-user-select: text !important;
+    user-select: text !important;
   }
 }

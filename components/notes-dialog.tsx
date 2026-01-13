@@ -161,12 +161,26 @@ export function NotesDialog({ applicationId, role, companyName, initialNotes }: 
             <p>{initialNotes && initialNotes.trim() ? "Edit notes" : "Add notes"}</p>
           </TooltipContent>
         </Tooltip>
-        <DialogContent className="!max-w-5xl w-full sm:!h-[60vh] sm:!max-h-[90vh]">
+        <DialogContent 
+          className="!max-w-5xl w-full sm:!h-[60vh] sm:!max-h-[90vh]"
+          style={{
+            WebkitUserSelect: 'text',
+            userSelect: 'text',
+          } as React.CSSProperties}
+        >
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>Notes for {role} at {companyName}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 overflow-y-auto flex-1 min-h-0">
+          <div 
+            className="space-y-4 overflow-y-auto flex-1 min-h-0"
+            style={{
+              WebkitUserSelect: 'text',
+              userSelect: 'text',
+              WebkitOverflowScrolling: 'touch',
+              touchAction: 'auto',
+            } as React.CSSProperties}
+          >
             {error && (
               <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
                 {error}
