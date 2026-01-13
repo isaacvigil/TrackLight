@@ -15,11 +15,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Textarea } from "@/components/ui/textarea";
 import { SquarePen } from "lucide-react";
 import { updateJobApplicationNotes } from "@/app/actions/job-applications";
 import { useAuth } from "@clerk/nextjs";
 import posthog from "posthog-js";
+import { TiptapEditor, TiptapHelpDialog } from "@/components/tiptap-editor";
 
 interface NotesDialogProps {
   applicationId: string;
@@ -173,14 +173,14 @@ export function NotesDialog({ applicationId, role, companyName, initialNotes }: 
               </div>
             )}
 
-            <Textarea
+            <TiptapEditor
+              content={notes}
+              onChange={setNotes}
               placeholder="Add your notes here..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="min-h-[400px]"
             />
 
-            <div className="flex items-center justify-end gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <TiptapHelpDialog />
               <Button
                 onClick={saveNotes}
                 disabled={!hasChanges || isSaving}
