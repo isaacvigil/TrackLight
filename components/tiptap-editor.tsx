@@ -68,7 +68,7 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
     },
     editorProps: {
       attributes: {
-        class: 'tiptap-prose max-w-none focus:outline-none min-h-[400px] max-h-[calc(100vh-300px)] overflow-y-auto px-4 py-3',
+        class: 'tiptap-prose max-w-none focus:outline-none h-full px-4 py-3',
       },
     },
     immediatelyRender: false,
@@ -149,9 +149,9 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
   }
 
   return (
-    <div className={cn("tiptap-editor-container border rounded-lg overflow-hidden", className)}>
+    <div className={cn("tiptap-editor-container border rounded-lg overflow-hidden flex flex-col flex-1", className)}>
       {/* Toolbar */}
-      <div className="border-b bg-muted/50 px-2 py-1.5 flex items-center gap-1 flex-wrap">
+      <div className="border-b bg-muted/50 px-2 py-1.5 flex items-center gap-1 flex-wrap flex-shrink-0">
         <Button
           type="button"
           variant="ghost"
@@ -327,7 +327,9 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
       </div>
 
       {/* Editor */}
-      <EditorContent editor={editor} />
+      <div className="flex-1 overflow-y-auto flex flex-col">
+        <EditorContent editor={editor} className="flex-1" />
+      </div>
     </div>
   )
 }

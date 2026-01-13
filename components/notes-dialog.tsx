@@ -161,12 +161,12 @@ export function NotesDialog({ applicationId, role, companyName, initialNotes }: 
             <p>{initialNotes && initialNotes.trim() ? "Edit notes" : "Add notes"}</p>
           </TooltipContent>
         </Tooltip>
-        <DialogContent className="!max-w-5xl w-full">
-          <DialogHeader>
+        <DialogContent className="!max-w-5xl w-full sm:!h-[60vh] sm:!max-h-[90vh]">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Notes for {role} at {companyName}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 overflow-y-auto flex-1 min-h-0">
             {error && (
               <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
                 {error}
@@ -178,18 +178,18 @@ export function NotesDialog({ applicationId, role, companyName, initialNotes }: 
               onChange={setNotes}
               placeholder="Add your notes here..."
             />
+          </div>
 
-            <div className="flex items-center justify-between gap-3">
-              <TiptapHelpDialog />
-              <Button
-                onClick={saveNotes}
-                disabled={!hasChanges || isSaving}
-                className="min-w-[120px]"
-                type="button"
-              >
-                {isSaving ? "Saving..." : "Save Notes"}
-              </Button>
-            </div>
+          <div className="flex items-center justify-between gap-3 flex-shrink-0">
+            <TiptapHelpDialog />
+            <Button
+              onClick={saveNotes}
+              disabled={!hasChanges || isSaving}
+              className="min-w-[120px]"
+              type="button"
+            >
+              {isSaving ? "Saving..." : "Save Notes"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
