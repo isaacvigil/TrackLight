@@ -53,8 +53,14 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
       }),
       TiptapLink.configure({
         openOnClick: false,
+        autolink: true,
+        linkOnPaste: true,
         HTMLAttributes: {
           class: 'text-primary underline hover:opacity-80',
+        },
+        validate: (url) => {
+          // Allow mailto: links and regular URLs
+          return /^(https?:\/\/|mailto:)/.test(url) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(url)
         },
       }),
       TaskList,
@@ -110,6 +116,21 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
     }
 
     const textToUse = linkText.trim() || linkUrl
+    
+    // Detect if the URL is an email address
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(linkUrl)
+    const finalHref = isEmail && !linkUrl.startsWith('mailto:') 
+      ? `mailto:${linkUrl}` 
+      : linkUrl
+    
+    // Use target="_blank" for regular URLs, but not for mailto links
+    const linkAttrs: { href: string; target?: string } = {
+      href: finalHref,
+    }
+    
+    if (!isEmail && !finalHref.startsWith('mailto:')) {
+      linkAttrs.target = '_blank'
+    }
 
     // Use the proper way to insert a link with text
     editor
@@ -122,10 +143,7 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
         marks: [
           {
             type: 'link',
-            attrs: {
-              href: linkUrl,
-              target: '_blank',
-            },
+            attrs: linkAttrs,
           },
         ],
         text: textToUse,
@@ -203,8 +221,8 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
               </h4>
               
               <Input
-                type="url"
-                placeholder="https://example.com"
+                type="text"
+                placeholder="https://example.com or email@example.com"
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
                 onKeyDown={(e) => {
@@ -411,6 +429,9 @@ export function TiptapHelpDialog() {
                   </p>
                   <p className="text-muted-foreground">
                     <span className="font-medium text-foreground">Auto-link:</span> Paste a URL (e.g., https://example.com) and it becomes clickable automatically
+                  </p>
+                  <p className="text-muted-foreground">
+                    <span className="font-medium text-foreground">Email links:</span> Enter an email address (e.g., recruiter@company.com) to create a mailto link that opens your email client
                   </p>
                 </div>
               </div>
