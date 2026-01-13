@@ -178,7 +178,7 @@ export function NotesDialog({ applicationId, role, companyName, initialNotes }: 
               WebkitUserSelect: 'text',
               userSelect: 'text',
               WebkitOverflowScrolling: 'touch',
-              touchAction: 'auto',
+              touchAction: 'pan-y',
             } as React.CSSProperties}
           >
             {error && (
