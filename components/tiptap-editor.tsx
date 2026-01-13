@@ -250,24 +250,26 @@ export function TiptapEditor({ content, onChange, placeholder = "Start writing..
               />
               
               <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={applyLink}
-                  className="flex-1"
-                >
-                  Apply
-                </Button>
                 {hasSelection && editor.isActive('link') && (
                   <Button
                     type="button"
                     size="sm"
                     variant="destructive"
                     onClick={removeLink}
+                    className="flex-1"
                   >
                     Remove
                   </Button>
                 )}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={applyLink}
+                  className="flex-1"
+                >
+                  Apply
+                </Button>
               </div>
             </div>
           </PopoverContent>
