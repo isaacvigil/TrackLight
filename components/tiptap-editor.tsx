@@ -339,7 +339,7 @@ export function TiptapHelpDialog() {
         <Button
           type="button"
           variant="ghost"
-          size="md"
+          size="sm"
           className="text-muted-foreground hover:text-foreground"
         >
           <HelpCircle className="h-4 w-4 mr-1.5" />
