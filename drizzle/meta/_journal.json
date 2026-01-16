@@ -29,6 +29,13 @@
       "when": 1766963097319,
       "tag": "0003_curly_black_bolt",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1768586004258,
+      "tag": "0004_dark_multiple_man",
+      "breakpoints": true
     }
   ]
 }

@@ -11,6 +11,7 @@ import {
 import { updateJobApplicationField } from "@/app/actions/job-applications";
 import { cn } from "@/lib/utils";
 import posthog from "posthog-js";
+import { Bookmark, Check, MessagesSquare, X, File, type LucideIcon } from "lucide-react";
 
 interface EditableStatusCellProps {
   applicationId: string;
@@ -18,11 +19,11 @@ interface EditableStatusCellProps {
 }
 
 const statusOptions = [
-  { value: "bookmarked", label: "Bookmarked" },
-  { value: "applied", label: "Applied" },
-  { value: "interviewing", label: "Interviewing" },
-  { value: "no_match", label: "No match" },
-  { value: "accepted", label: "Accepted!" },
+  { value: "bookmarked", label: "Bookmarked", icon: Bookmark },
+  { value: "applied", label: "Applied", icon: Check },
+  { value: "interviewing", label: "Interviewing", icon: MessagesSquare },
+  { value: "no_match", label: "No match", icon: X },
+  { value: "offer", label: "Offer", icon: File },
 ];
 
 const statusColors: Record<string, string> = {
@@ -30,7 +31,7 @@ const statusColors: Record<string, string> = {
   applied: "text-blue-600 dark:text-blue-400",
   interviewing: "text-purple-600 dark:text-purple-400",
   no_match: "text-destructive",
-  accepted: "text-green-600 dark:text-green-400",
+  offer: "text-green-600 dark:text-green-400",
 };
 
 export function EditableStatusCell({ applicationId, value }: EditableStatusCellProps) {
@@ -57,7 +58,8 @@ export function EditableStatusCell({ applicationId, value }: EditableStatusCellP
     }
   }
 
-  const currentLabel = statusOptions.find((opt) => opt.value === value)?.label || value;
+  const currentOption = statusOptions.find((opt) => opt.value === value);
+  const CurrentIcon = currentOption?.icon;
 
   return (
     <Select value={value} onValueChange={handleChange} disabled={isSaving}>
@@ -68,17 +70,24 @@ export function EditableStatusCell({ applicationId, value }: EditableStatusCellP
         )}
       >
         <SelectValue>
-          <span className="text-base font-normal">{currentLabel}</span>
+          <span className="flex items-center gap-2 text-base font-normal">
+            {CurrentIcon && <CurrentIcon className={cn("size-4", statusColors[value] || "text-primary")} />}
+            {currentOption?.label || value}
+          </span>
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
-        {statusOptions.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            <span className={cn("text-base font-normal", statusColors[option.value])}>
-              {option.label}
-            </span>
-          </SelectItem>
-        ))}
+        {statusOptions.map((option) => {
+          const Icon = option.icon;
+          return (
+            <SelectItem key={option.value} value={option.value}>
+              <span className={cn("flex items-center gap-2 text-base font-normal", statusColors[option.value])}>
+                <Icon className={cn("size-4", statusColors[option.value])} />
+                {option.label}
+              </span>
+            </SelectItem>
+          );
+        })}
       </SelectContent>
     </Select>
   );

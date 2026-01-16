@@ -7,7 +7,7 @@ export const applicationStatusEnum = pgEnum("application_status", [
   "applied",
   "interviewing",
   "no_match",
-  "accepted",
+  "offer",
 ]);
 
 export const jobApplications = pgTable("job_applications", {
