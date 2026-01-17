@@ -23,6 +23,7 @@ import { EditableStatusCell } from "@/components/editable-status-cell";
 import { EditableRemoteStatusCell } from "@/components/editable-remote-status-cell";
 import { EditableDateCell } from "@/components/editable-date-cell";
 import { NotesDialog } from "@/components/notes-dialog";
+import { SimilarJobsDialog } from "@/components/similar-jobs-dialog";
 import type { JobApplication } from "@/db/schema";
 import { cn } from "@/lib/utils";
 
@@ -253,6 +254,12 @@ export function SortableApplicationsTable({ applications }: SortableApplications
                     role={app.role}
                     companyName={app.company}
                     initialNotes={app.notes}
+                  />
+                  <SimilarJobsDialog
+                    role={app.role}
+                    company={app.company}
+                    location={app.location}
+                    remoteStatus={app.remoteStatus}
                   />
                   {app.jobUrl ? (
                     <TooltipProvider>

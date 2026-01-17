@@ -652,3 +652,166 @@ export async function updateJobApplicationNotes(input: { id: string; notes: stri
   return result[0];
 }
 
+/**
+ * Schema for finding similar jobs input
+ */
+const findSimilarJobsSchema = z.object({
+  role: z.string().min(1, "Role is required"),
+  company: z.string().min(1, "Company is required"),
+  location: z.string().optional(),
+  remoteStatus: z.string().optional(),
+});
+
+/**
+ * Schema for a single similar job result
+ * Note: All fields must be required for OpenAI structured output
+ */
+const similarJobSchema = z.object({
+  company: z.string().describe("Company name"),
+  role: z.string().describe("Job title/role"),
+  location: z.string().describe("Job location (city/region) or empty string if not specified"),
+  remoteStatus: z.string().describe("Remote work arrangement: 'Remote', 'Hybrid', 'In-office', or empty string if not specified"),
+  jobUrl: z.string().describe("URL to the job posting or empty string if not available"),
+  description: z.string().describe("Brief 1-2 sentence description of why this job is similar"),
+});
+
+/**
+ * Schema for the AI response containing 3 similar jobs
+ */
+const similarJobsResponseSchema = z.object({
+  jobs: z.array(similarJobSchema).length(3).describe("Array of exactly 3 similar job opportunities"),
+});
+
+type FindSimilarJobsInput = z.infer<typeof findSimilarJobsSchema>;
+export type SimilarJob = z.infer<typeof similarJobSchema>;
+type SimilarJobsResponse = z.infer<typeof similarJobsResponseSchema>;
+
+/**
+ * Finds 3 similar job opportunities using OpenAI based on an existing job application
+ */
+export async function findSimilarJobs(input: FindSimilarJobsInput): Promise<SimilarJobsResponse> {
+  const { userId } = await auth();
+  
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Validate input
+  const validatedData = findSimilarJobsSchema.parse(input);
+
+  try {
+    const { output } = await generateText({
+      model: openai("gpt-4o"), // Use gpt-4o for accurate job search
+      output: Output.object({
+        schema: similarJobsResponseSchema,
+      }),
+      prompt: `You are a job search assistant. Based on the following job application, find 3 similar job opportunities that would be relevant to the user.
+
+**Current Job Application:**
+- Role: ${validatedData.role}
+- Company: ${validatedData.company}
+- Location: ${validatedData.location || "Not specified"}
+- Remote Status: ${validatedData.remoteStatus || "Not specified"}
+
+**Requirements:**
+1. Find exactly 3 similar jobs
+2. Jobs should have similar roles/titles (e.g., if the role is "Software Engineer", find similar engineering positions)
+3. Prioritize jobs in the same location or nearby regions
+4. Consider remote status when searching (if remote, include remote jobs; if in-office, include local jobs)
+5. Jobs can be from the same company OR different companies
+6. Include a brief description (1-2 sentences) explaining why each job is similar
+7. Try to provide real, recent job postings if possible
+8. If you cannot find real job URLs, return empty strings for jobUrl
+
+**Format:**
+- Return exactly 3 jobs
+- Include company name, role, location, remote status, job URL (if available), and description
+- For fields that are not available, return empty strings (not null)
+
+**Priority matching criteria:**
+1. Role similarity (most important)
+2. Location proximity
+3. Remote status alignment
+4. Company type/industry
+
+Provide 3 diverse options that give the user good alternatives.`,
+    });
+
+    return output;
+  } catch (error) {
+    console.error("AI job search failed:", error);
+    throw new Error("Failed to find similar jobs. Please try again.");
+  }
+}
+
+/**
+ * Schema for creating a job application from a similar job suggestion
+ */
+const createFromSimilarJobSchema = z.object({
+  company: z.string().min(1, "Company name is required"),
+  role: z.string().min(1, "Role is required"),
+  location: z.string().nullable(),
+  remoteStatus: z.string().nullable(),
+  salary: z.string().nullable(),
+  jobUrl: z.string().nullable(),
+  sourceJobRole: z.string().min(1, "Source job role is required"),
+  sourceJobCompany: z.string().min(1, "Source job company is required"),
+});
+
+type CreateFromSimilarJobInput = z.infer<typeof createFromSimilarJobSchema>;
+
+/**
+ * Creates a job application from a similar job suggestion
+ * Adds it to the tracker as "bookmarked" status with source information in notes
+ */
+export async function createJobApplicationFromSimilarJob(input: CreateFromSimilarJobInput) {
+  const { userId, has } = await auth();
+  
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Validate input
+  const validatedData = createFromSimilarJobSchema.parse(input);
+
+  // Check row limit before processing
+  const [{ count: rowCount }] = await db
+    .select({ count: count() })
+    .from(jobApplications)
+    .where(eq(jobApplications.userId, userId));
+
+  const hasUnlimitedRows = has({ feature: 'unlimited_rows' });
+  const maxRows = hasUnlimitedRows ? 10000 : 20;
+
+  if (rowCount >= maxRows) {
+    throw new Error(
+      `You've reached your limit of ${maxRows} applications. ${
+        !hasUnlimitedRows ? 'Upgrade to Pro for unlimited applications.' : ''
+      }`
+    );
+  }
+
+  // Create note with source information
+  const sourceNote = `<p>Found via AI search from: <strong>${validatedData.sourceJobRole}</strong> at <strong>${validatedData.sourceJobCompany}</strong></p>`;
+
+  // Insert into database as bookmarked
+  const result = await db
+    .insert(jobApplications)
+    .values({
+      userId,
+      company: validatedData.company,
+      role: validatedData.role,
+      location: validatedData.location,
+      remoteStatus: validatedData.remoteStatus,
+      salary: validatedData.salary,
+      jobUrl: validatedData.jobUrl,
+      applicationStatus: "bookmarked",
+      appliedDate: null, // Not applied yet, just bookmarked
+      statusChangeDate: null,
+      notes: sourceNote,
+    })
+    .returning();
+
+  revalidatePath("/track");
+  return result[0];
+}

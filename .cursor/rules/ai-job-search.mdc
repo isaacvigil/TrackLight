@@ -1,0 +1,530 @@
+---
+description: AI-powered similar job search using OpenAI and the Vercel AI SDK
+---
+
+# AI-Powered Similar Job Search
+
+This feature uses **OpenAI via the Vercel AI SDK** to find similar job opportunities based on a user's existing job application.
+
+## Feature Overview
+
+When a user clicks the **sparkle icon** (✨) next to a job application in the tracker, the system:
+1. Takes the job's role, company, location, and remote status as input
+2. Uses OpenAI to search for and generate 3 similar job opportunities
+3. Returns jobs that match similar:
+   - **Role/title** (e.g., "Software Engineer", "Senior Developer")
+   - **Location** (same city, region, or country)
+   - **Company** (can be the same company or different companies)
+   - **Remote status** (Remote, Hybrid, In-office)
+4. Displays results to the user for potential application
+
+## Implementation Pattern
+
+### 1. Server Action for AI Job Search
+
+Create a new server action in [app/actions/job-applications.ts](mdc:app/actions/job-applications.ts):
+
+```typescript
+"use server"
+
+import { auth } from "@clerk/nextjs/server";
+import { generateText, Output } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { z } from "zod";
+
+// Input validation schema
+const findSimilarJobsSchema = z.object({
+  role: z.string().min(1, "Role is required"),
+  company: z.string().min(1, "Company is required"),
+  location: z.string().optional(),
+  remoteStatus: z.string().optional(),
+});
+
+// Output schema for similar jobs
+// IMPORTANT: OpenAI's structured output requires ALL fields to be required
+const similarJobSchema = z.object({
+  company: z.string().describe("Company name"),
+  role: z.string().describe("Job title/role"),
+  location: z.string().describe("Job location (city/region) or empty string if not specified"),
+  remoteStatus: z.string().describe("Remote work arrangement: 'Remote', 'Hybrid', 'In-office', or empty string if not specified"),
+  jobUrl: z.string().describe("URL to the job posting or empty string if not available"),
+  description: z.string().describe("Brief 1-2 sentence description of why this job is similar"),
+});
+
+const similarJobsResponseSchema = z.object({
+  jobs: z.array(similarJobSchema).length(3).describe("Array of exactly 3 similar job opportunities"),
+});
+
+type FindSimilarJobsInput = z.infer<typeof findSimilarJobsSchema>;
+type SimilarJob = z.infer<typeof similarJobSchema>;
+type SimilarJobsResponse = z.infer<typeof similarJobsResponseSchema>;
+
+/**
+ * Finds 3 similar job opportunities using OpenAI based on an existing job application
+ */
+export async function findSimilarJobs(input: FindSimilarJobsInput): Promise<SimilarJobsResponse> {
+  const { userId } = await auth();
+  
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Validate input
+  const validatedData = findSimilarJobsSchema.parse(input);
+
+  try {
+    const { output } = await generateText({
+      model: openai("gpt-4o"), // Use gpt-4o for accurate job search
+      output: Output.object({
+        schema: similarJobsResponseSchema,
+      }),
+      prompt: `You are a job search assistant. Based on the following job application, find 3 similar job opportunities that would be relevant to the user.
+
+**Current Job Application:**
+- Role: ${validatedData.role}
+- Company: ${validatedData.company}
+- Location: ${validatedData.location || "Not specified"}
+- Remote Status: ${validatedData.remoteStatus || "Not specified"}
+
+**Requirements:**
+1. Find exactly 3 similar jobs
+2. Jobs should have similar roles/titles (e.g., if the role is "Software Engineer", find similar engineering positions)
+3. Prioritize jobs in the same location or nearby regions
+4. Consider remote status when searching (if remote, include remote jobs; if in-office, include local jobs)
+5. Jobs can be from the same company OR different companies
+6. Include a brief description (1-2 sentences) explaining why each job is similar
+7. Try to provide real, recent job postings if possible
+8. If you cannot find real job URLs, return empty strings for jobUrl
+
+**Format:**
+- Return exactly 3 jobs
+- Include company name, role, location, remote status, job URL (if available), and description
+- For fields that are not available, return empty strings (not null)
+
+**Priority matching criteria:**
+1. Role similarity (most important)
+2. Location proximity
+3. Remote status alignment
+4. Company type/industry
+
+Provide 3 diverse options that give the user good alternatives.`,
+    });
+
+    return output;
+  } catch (error) {
+    console.error("AI job search failed:", error);
+    throw new Error("Failed to find similar jobs. Please try again.");
+  }
+}
+```
+
+### 2. Client Component for Job Search Dialog
+
+Create a new component `components/similar-jobs-dialog.tsx`:
+
+```tsx
+"use client"
+
+import { useState } from "react"
+import { Sparkle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { findSimilarJobs } from "@/app/actions/job-applications"
+
+interface SimilarJobsDialogProps {
+  role: string
+  company: string
+  location: string | null
+  remoteStatus: string | null
+}
+
+interface SimilarJob {
+  company: string
+  role: string
+  location: string
+  remoteStatus: string
+  jobUrl: string
+  description: string
+}
+
+export function SimilarJobsDialog({
+  role,
+  company,
+  location,
+  remoteStatus,
+}: SimilarJobsDialogProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [jobs, setJobs] = useState<SimilarJob[]>([])
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSearch() {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const result = await findSimilarJobs({
+        role,
+        company,
+        location: location || undefined,
+        remoteStatus: remoteStatus || undefined,
+      })
+
+      setJobs(result.jobs)
+    } catch (err) {
+      console.error("Failed to find similar jobs:", err)
+      setError("Failed to find similar jobs. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  function handleOpenChange(open: boolean) {
+    setIsOpen(open)
+    if (open && jobs.length === 0) {
+      // Trigger search when dialog opens for the first time
+      handleSearch()
+    }
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-10 w-10 px-2"
+                aria-label="Find similar jobs"
+              >
+                <Sparkle className="size-6" aria-hidden="true" />
+                <span className="sr-only">
+                  Find similar jobs to {role} at {company}
+                </span>
+              </Button>
+            </DialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Find similar jobs</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Similar Job Opportunities</DialogTitle>
+          <DialogDescription>
+            Jobs similar to {role} at {company}
+          </DialogDescription>
+        </DialogHeader>
+
+        {isLoading && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin size-8 border-4 border-primary border-t-transparent rounded-full" />
+            </div>
+            <p className="text-center text-muted-foreground">
+              Searching for similar jobs...
+            </p>
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-lg bg-destructive/10 p-4 text-destructive">
+            <p>{error}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-2"
+              onClick={handleSearch}
+            >
+              Try Again
+            </Button>
+          </div>
+        )}
+
+        {!isLoading && !error && jobs.length > 0 && (
+          <div className="space-y-4">
+            {jobs.map((job, index) => (
+              <Card key={index}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-lg">{job.role}</CardTitle>
+                      <CardDescription className="mt-1">
+                        {job.company}
+                      </CardDescription>
+                    </div>
+                    {job.jobUrl && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        asChild
+                      >
+                        <a
+                          href={job.jobUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          View Job
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      {job.description}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {job.location && (
+                        <Badge variant="secondary">{job.location}</Badge>
+                      )}
+                      {job.remoteStatus && (
+                        <Badge variant="outline">{job.remoteStatus}</Badge>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}
+```
+
+### 3. Update the Applications Table
+
+Update [components/sortable-applications-table.tsx](mdc:components/sortable-applications-table.tsx) to use the new dialog component instead of the standalone button:
+
+```tsx
+// Replace the current sparkle button with:
+import { SimilarJobsDialog } from "@/components/similar-jobs-dialog"
+
+// In the table cell with action buttons:
+<TableCell className="text-right">
+  <div className="flex items-center justify-end gap-1">
+    <NotesDialog 
+      applicationId={app.id}
+      role={app.role}
+      companyName={app.company}
+      initialNotes={app.notes}
+    />
+    <SimilarJobsDialog
+      role={app.role}
+      company={app.company}
+      location={app.location}
+      remoteStatus={app.remoteStatus}
+    />
+    {app.jobUrl ? (
+      // ... existing link button code
+    ) : (
+      <div className="h-10 w-10" />
+    )}
+    <DeleteApplicationButton
+      applicationId={app.id}
+      company={app.company}
+      role={app.role}
+    />
+  </div>
+</TableCell>
+```
+
+## Key Features
+
+### AI Model Selection
+
+- **Use gpt-4o** for accurate job matching and generation
+- gpt-4o-mini may hallucinate job postings or provide less accurate matches
+- Cost per search: ~$0.01-0.02 (acceptable for this feature)
+
+### Structured Output
+
+- Use `Output.object()` with Zod schemas for type-safe responses
+- All fields must be **required** (OpenAI constraint) - use empty strings for missing data
+- Request exactly 3 jobs in the schema
+
+### Search Criteria Priority
+
+1. **Role similarity** (highest priority) - Match job titles/responsibilities
+2. **Location proximity** - Same city > same region > same country > remote
+3. **Remote status alignment** - Match remote/hybrid/in-office preferences
+4. **Company type** - Similar industry/size when possible
+
+### User Experience
+
+- **Loading state** - Show spinner while AI searches (3-8 seconds)
+- **Error handling** - Graceful error messages with retry option
+- **Result display** - Card layout with job details and "View Job" links
+- **No results** - Should never happen (AI should always generate 3 jobs)
+
+## Limitations
+
+### Real-Time Job Data
+
+**IMPORTANT**: OpenAI models do not have access to real-time job board data. The AI will:
+- Generate job opportunities based on its training data knowledge
+- Provide realistic job descriptions and requirements
+- May not have actual job posting URLs (will return empty strings)
+- Job suggestions may be "realistic examples" rather than actual open positions
+
+### Alternatives for Real Job Data
+
+To search actual job postings, consider integrating:
+- **Job board APIs**: Indeed, LinkedIn, Glassdoor (if available)
+- **Web scraping services**: Specialized job aggregators
+- **Company career page APIs**: Some companies provide public APIs
+
+For this implementation, we accept AI-generated suggestions as a starting point for the user's job search.
+
+### Cost Considerations
+
+- Each search costs ~$0.01-0.02
+- Consider implementing:
+  - **Rate limiting** - Max searches per user per day
+  - **Caching** - Cache results for the same role/location
+  - **Usage tracking** - Monitor API costs via OpenAI dashboard
+
+## Security and Authorization
+
+### Authentication
+
+- All searches **MUST** verify user authentication via `auth()` from Clerk
+- Unauthenticated requests should throw an error
+
+### Billing Considerations
+
+- Consider limiting this feature to **Pro users only** if costs become significant
+- Use Clerk's `has({ feature: 'ai_job_search' })` to gate access
+- Free users could get 3-5 searches per day, Pro users unlimited
+
+### Example with Billing Protection
+
+```typescript
+export async function findSimilarJobs(input: FindSimilarJobsInput) {
+  const { userId, has } = await auth();
+  
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Check feature access (Pro users only)
+  const hasAISearch = has({ feature: 'ai_job_search' });
+  
+  if (!hasAISearch) {
+    throw new Error("Upgrade to Pro to access AI job search");
+  }
+
+  // Continue with AI search...
+}
+```
+
+## Best Practices
+
+### 1. Prompt Engineering
+
+- Be specific about the number of results (exactly 3)
+- Provide clear matching criteria
+- Request descriptions explaining similarity
+- Handle edge cases (e.g., very specific or unusual roles)
+
+### 2. Error Handling
+
+- Catch and log AI errors
+- Provide user-friendly error messages
+- Offer retry functionality
+- Never expose API errors to users
+
+### 3. Loading States
+
+- Show clear loading indicators
+- Disable submit button during search
+- Show estimated wait time (3-8 seconds)
+- Prevent duplicate requests
+
+### 4. Result Validation
+
+- Validate AI output with Zod schemas
+- Handle empty or malformed responses
+- Ensure exactly 3 jobs are returned
+- Convert empty strings to null when displaying
+
+## Testing
+
+Test the feature with various job types:
+
+1. **Common roles**: "Software Engineer", "Product Manager"
+2. **Specialized roles**: "Blockchain Developer", "UX Researcher"
+3. **Remote positions**: Verify remote job suggestions
+4. **Location-specific**: Verify location matching
+5. **Different seniority**: Junior, Senior, Lead, etc.
+
+Verify:
+- ✅ 3 jobs are always returned
+- ✅ Jobs are relevant to the input role
+- ✅ Locations are similar or match remote status
+- ✅ Descriptions explain why jobs are similar
+- ✅ Error handling works gracefully
+- ✅ Loading states are clear
+
+## Future Enhancements
+
+### 1. Real Job Board Integration
+
+Integrate with actual job board APIs:
+- Indeed API
+- LinkedIn Jobs API
+- RemoteOK API
+- We Work Remotely API
+
+### 2. Personalization
+
+- Consider user's skills and experience
+- Factor in previous applications
+- Learn from user's preferences
+
+### 3. Saved Searches
+
+- Allow users to save search criteria
+- Email notifications for new similar jobs
+- Scheduled searches
+
+### 4. Bulk Import
+
+- Allow adding multiple suggested jobs to tracker
+- One-click import from search results
+
+### 5. Search History
+
+- Track previous AI searches
+- Show recently searched similar jobs
+- Prevent duplicate searches
+
+## Related Documentation
+
+- **AI Data Extraction**: [.cursor/rules/ai-data-extraction.mdc](mdc:.cursor/rules/ai-data-extraction.mdc)
+- **Database Interactions**: [.cursor/rules/database-interactions.mdc](mdc:.cursor/rules/database-interactions.mdc)
+- **Clerk Authentication**: [.cursor/rules/clerk-authentication.mdc](mdc:.cursor/rules/clerk-authentication.mdc)
+- **Clerk Billing**: [.cursor/rules/clerk-billing.mdc](mdc:.cursor/rules/clerk-billing.mdc)
+- **Server Actions**: [app/actions/job-applications.ts](mdc:app/actions/job-applications.ts)
